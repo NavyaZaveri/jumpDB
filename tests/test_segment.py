@@ -4,7 +4,7 @@ from sst_engine.sst_engine import Segment, DB
 
 
 def test_segment_reads(segment):
-    entries = [("foo", "bar"), ("hello", "world")]
+    entries = [("0", 0), ("hello", "world")]
     with segment.open("w") as s:
         for entry in entries:
             s.add_entry(entry)
@@ -95,7 +95,7 @@ def test_segment_chaining_with_no_duplicate_keys():
             segment_1.add_entry(entry)
         for entry in segment_2_entries:
             segment_2.add_entry(entry)
-    db = DB()
+    db = DB(segment_size=10)
     merged_segments = db.merge(segment_1, segment_2)
     assert len(merged_segments) == 2
     with merged_segments[0].open("r") as s1, merged_segments[1].open("r") as s2:
