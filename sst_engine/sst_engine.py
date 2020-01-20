@@ -9,13 +9,18 @@ import json
 TOMBSTONE = str(uuid.uuid5(uuid.NAMESPACE_OID, 'TOMBSTONE')).encode('ascii')
 
 
+def new_segment_name():
+    for i in (f'{i:010}' for i in range(10 ** 10)):
+        return f"{i}.txt"
+
+
 def chain_segments(s1, s2):
     with s1.open("r"), s2.open("r"):
         while not s1.reached_eof() and not s2.reached_eof():
             if s1.peek_entry().key < s2.peek_entry().key:
                 yield s1.read_entry()
             elif s1.peek_entry().key == s2.peek_entry().key:
-                yield s2.read_entry()  # take the most recent entry
+                yield s2.read_entry()  # segment_2 was produced after segmented_i, so we take the more recent entry
                 s1.read_entry()
             else:
                 yield s2.read_entry()
@@ -23,12 +28,6 @@ def chain_segments(s1, s2):
             yield s1.read_entry()
         while not s2.reached_eof():
             yield s2.read_entry()
-
-
-def merge(s1, s2, s3):
-    with s3.open("w+"):
-        for entry in chain_segments(s1, s2):
-            s3.add_entry(entry)
 
 
 class UnsortedEntries(Exception):
@@ -46,6 +45,10 @@ class Segment:
         self.path = path
         self.fd = None
         self.previous_entry_key = None
+        self.size = 0
+
+    def __len__(self):
+        return self.size
 
     def reached_eof(self):
         cur_pos = self.fd.tell()
@@ -66,7 +69,6 @@ class Segment:
 
     def add_entry(self, entry):
         key = entry[0]
-        print(key, self.previous_entry_key)
         if self.previous_entry_key is not None and self.previous_entry_key > key:
             raise UnsortedEntries(f"Tried to insert {key}, but previous entry {self.previous_entry_key} is bigger")
 
@@ -75,6 +77,7 @@ class Segment:
         pos = self.fd.tell()
         self.fd.write(json_str)
         self.fd.write("\n")
+        self.size += 1
         return pos
 
     def read_entry(self):
@@ -140,22 +143,28 @@ class SegmentEntry:
 
 
 class DB:
-    def __init__(self, max_size=1000, path=None):
+    def __init__(self, max_size=1000, sparse_offset=10, segment_size=10):
         self.mem_table = MemTable(max_size)
         self.max_size = max_size
         self._key_offsets = []
         self.immutable_segments = []
-        self.sparse_memory_index = {}
+        self.sparse_memory_index = SortedDict()
+        self.sparse_offset = sparse_offset
+        self.segment_size = segment_size
 
     def __getitem__(self, item):
         if item in self.mem_table:
             value = self.mem_table[item]
             if value == TOMBSTONE:
                 raise RuntimeError("{item} was deleted.")
+            return value
 
     def __setitem__(self, key, value):
         if self.mem_table.capacity_reached():
             self._write_to_segment()
+            if len(self.immutable_segments) >= 2:  # parameterize this?
+                self.merge(*self.immutable_segments)
+
             self.mem_table.clear()
         else:
             self.mem_table[key] = value
@@ -166,26 +175,40 @@ class DB:
     def __contains__(self, item):
         pass
 
-    def _should_merge(self):
-        pass
+    def merge(self, s1, s2):
+        merged_segments = []
 
-    def _merge(self):
-        pass
+        def merge_into(new_segment, chain_gen):
+            count = 0
+            with new_segment.open("w+"):
+                for entry in chain_gen:
+                    new_segment.add_entry(entry)
+                    count += 1
+                    if count == self.segment_size:
+                        merge_into(Segment(new_segment_name()), chain_gen)
+                        break
+            if len(new_segment) >= 1:  # just in case the generator doesn't yield anything
+                merged_segments.append(new_segment)
+
+        merge_into(Segment(new_segment_name()), chain_segments(s1, s2))
+        return merged_segments[::-1]
 
     def _write_to_segment(self):
         if self.mem_table.capacity_reached():
-            segment = Segment(self.new_segment_name())
-            with segment.open("r+") as segment:
+            segment = Segment(new_segment_name())
+            with segment.open("w") as segment:
+                count = 0
                 for (k, v) in self.mem_table:
-                    if v != TOMBSTONE:
-                        segment.add_entry((k, v))
+                    if v != TOMBSTONE:  # if a key was deleted, there's no need to put in the segment
+                        count += 1
+                        offset = segment.add_entry((k, v))
+                        if count % self.sparse_offset == 0:
+                            self.sparse_memory_index[k] = KeyDirEntry(offset=offset, segment=segment)
+
             self.immutable_segments.append(segment)
 
     def load_from_data(self):
         pass
-
-    def new_segment_name(self):
-        return f"{len(self.immutable_segments) + 1}.txt"
 
 
 class MemTable:

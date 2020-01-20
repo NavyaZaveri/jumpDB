@@ -2,8 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="5a566fd7-fd93-4393-b4f9-1f9e2f0d9f06" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/tests/data.txt" beforeDir="false" afterPath="$PROJECT_DIR$/tests/data.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/test_segment.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/test_segment.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/sst_engine/sst_engine.py" beforeDir="false" afterPath="$PROJECT_DIR$/sst_engine/sst_engine.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -19,7 +20,7 @@
     </option>
   </component>
   <component name="Git.Settings">
-    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/tests" />
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="ProjectId" id="1WWnXccxdF8V5Do41mrGAQoMSSI" />
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
@@ -43,8 +44,29 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Python tests.pytest for test_segment.test_segment_chaining">
-    <configuration name="pytest for test_segment.test_panic_when_writing_unsorted_entries" type="tests" factoryName="py.test" temporary="true" nameIsGenerated="true">
+  <component name="RunManager" selected="Python tests.pytest for test_segment.test_segment_chaining_with_no_duplicate_keys">
+    <configuration name="test_segment" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <module name="sst_engine" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/tests" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/tests/test_segment.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="pytest for test_db.test_ops_without_exceeding_capacity" type="tests" factoryName="py.test" temporary="true" nameIsGenerated="true">
       <module name="sst_engine" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -55,11 +77,11 @@
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <option name="_new_keywords" value="&quot;&quot;" />
       <option name="_new_additionalArguments" value="&quot;&quot;" />
-      <option name="_new_target" value="&quot;test_segment.test_panic_when_writing_unsorted_entries&quot;" />
+      <option name="_new_target" value="&quot;test_db.test_ops_without_exceeding_capacity&quot;" />
       <option name="_new_targetType" value="&quot;PYTHON&quot;" />
       <method v="2" />
     </configuration>
-    <configuration name="pytest for test_segment.test_segment_chaining" type="tests" factoryName="py.test" temporary="true" nameIsGenerated="true">
+    <configuration name="pytest for test_segment.test_segment_chaining_with_duplicate_keys" type="tests" factoryName="py.test" temporary="true" nameIsGenerated="true">
       <module name="sst_engine" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -70,11 +92,11 @@
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <option name="_new_keywords" value="&quot;&quot;" />
       <option name="_new_additionalArguments" value="&quot;&quot;" />
-      <option name="_new_target" value="&quot;test_segment.test_segment_chaining&quot;" />
+      <option name="_new_target" value="&quot;test_segment.test_segment_chaining_with_duplicate_keys&quot;" />
       <option name="_new_targetType" value="&quot;PYTHON&quot;" />
       <method v="2" />
     </configuration>
-    <configuration name="pytest for test_segment.test_segment_peeks" type="tests" factoryName="py.test" temporary="true" nameIsGenerated="true">
+    <configuration name="pytest for test_segment.test_segment_chaining_with_no_duplicate_keys" type="tests" factoryName="py.test" temporary="true" nameIsGenerated="true">
       <module name="sst_engine" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -85,7 +107,7 @@
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <option name="_new_keywords" value="&quot;&quot;" />
       <option name="_new_additionalArguments" value="&quot;&quot;" />
-      <option name="_new_target" value="&quot;test_segment.test_segment_peeks&quot;" />
+      <option name="_new_target" value="&quot;test_segment.test_segment_chaining_with_no_duplicate_keys&quot;" />
       <option name="_new_targetType" value="&quot;PYTHON&quot;" />
       <method v="2" />
     </configuration>
@@ -104,28 +126,13 @@
       <option name="_new_targetType" value="&quot;PYTHON&quot;" />
       <method v="2" />
     </configuration>
-    <configuration name="pytest for test_segment.test_segment_seeks" type="tests" factoryName="py.test" temporary="true" nameIsGenerated="true">
-      <module name="sst_engine" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/tests" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="_new_keywords" value="&quot;&quot;" />
-      <option name="_new_additionalArguments" value="&quot;&quot;" />
-      <option name="_new_target" value="&quot;test_segment.test_segment_seeks&quot;" />
-      <option name="_new_targetType" value="&quot;PYTHON&quot;" />
-      <method v="2" />
-    </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Python tests.pytest for test_segment.test_segment_chaining" />
-        <item itemvalue="Python tests.pytest for test_segment.test_panic_when_writing_unsorted_entries" />
+        <item itemvalue="Python tests.pytest for test_segment.test_segment_chaining_with_no_duplicate_keys" />
+        <item itemvalue="Python tests.pytest for test_segment.test_segment_chaining_with_duplicate_keys" />
         <item itemvalue="Python tests.pytest for test_segment.test_segment_reads" />
-        <item itemvalue="Python tests.pytest for test_segment.test_segment_seeks" />
-        <item itemvalue="Python tests.pytest for test_segment.test_segment_peeks" />
+        <item itemvalue="Python.test_segment" />
+        <item itemvalue="Python tests.pytest for test_db.test_ops_without_exceeding_capacity" />
       </list>
     </recent_temporary>
   </component>
