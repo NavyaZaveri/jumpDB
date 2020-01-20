@@ -1,3 +1,4 @@
+import time
 import uuid
 
 import attr
@@ -9,9 +10,8 @@ import json
 TOMBSTONE = str(uuid.uuid5(uuid.NAMESPACE_OID, 'TOMBSTONE')).encode('ascii')
 
 
-def new_segment_name():
-    for i in (f'{i:010}' for i in range(10 ** 10)):
-        return f"{i}.txt"
+def get_new_segment_name():
+    return str(time.time()) + ".txt"
 
 
 def chain_segments(s1, s2):
@@ -185,17 +185,17 @@ class DB:
                     new_segment.add_entry(entry)
                     count += 1
                     if count == self.segment_size:
-                        merge_into(Segment(new_segment_name()), chain_gen)
+                        merge_into(Segment(get_new_segment_name()), chain_gen)
                         break
             if len(new_segment) >= 1:  # just in case the generator doesn't yield anything
                 merged_segments.append(new_segment)
 
-        merge_into(Segment(new_segment_name()), chain_segments(s1, s2))
+        merge_into(Segment(get_new_segment_name()), chain_segments(s1, s2))
         return merged_segments[::-1]
 
     def _write_to_segment(self):
         if self.mem_table.capacity_reached():
-            segment = Segment(new_segment_name())
+            segment = Segment(get_new_segment_name())
             with segment.open("w") as segment:
                 count = 0
                 for (k, v) in self.mem_table:
