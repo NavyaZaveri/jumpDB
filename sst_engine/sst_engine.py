@@ -24,6 +24,13 @@ def search_entry_in_segment(segment, key, offset):
 
 
 def chain_segments(s1, s2):
+    """
+    Chains entries of two segments into one, ensuring that the result is sorted
+    by key and time
+
+    :param s1: old segment
+    :param s2: more recent segment
+    """
     with s1.open("r"), s2.open("r"):
         while not s1.reached_eof() and not s2.reached_eof():
             if s1.peek_entry().key < s2.peek_entry().key:
@@ -174,6 +181,7 @@ class DB:
         self._sparse_memory_index = SortedDict()
         self.sparse_offset = sparse_offset
         self.segment_size = segment_size
+        self._entries_deleted = 0
 
     def segment_count(self):
         return len(self._immutable_segments)
@@ -226,6 +234,7 @@ class DB:
                                 self._sparse_memory_index[entry.key] = KeyDirEntry(offset=offset, segment=segment)
                             count += 1
             self._mem_table.clear()
+            self._entries_deleted = 0
             self._mem_table[key] = value
         else:
             self._mem_table[key] = value
@@ -233,11 +242,15 @@ class DB:
     def __delitem__(self, key):
         if self.get(key) is not None:
             self._mem_table[key] = TOMBSTONE
+            self._entries_deleted += 1
         else:
             raise Exception(f"{key} does not exist in the db; thus, cannot delete")
 
     def __contains__(self, item):
         return self.get(item) is not None
+
+    def inmemory_size(self):
+        return len(self._mem_table) - self._entries_deleted
 
     def merge(self, s1, s2):
         merged_segments = []
@@ -258,6 +271,12 @@ class DB:
         return merged_segments[::-1]
 
     def _write_to_segment(self):
+        """
+        Creates a new segment filled with the contents of the memtable.
+        Should be called only when the capacity of memtable is full.
+
+        :return: Segment with contents of the memtable
+        """
         segment = make_new_segment()
         with segment.open("w") as segment:
             count = 0
