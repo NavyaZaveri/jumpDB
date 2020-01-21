@@ -197,7 +197,7 @@ class DB:
 
     def __getitem__(self, item):
         value = self.get(item)
-        if item is None:
+        if value is None:
             raise RuntimeError(f"no value found for {item}")
         return value
 
