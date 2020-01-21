@@ -207,6 +207,10 @@ class DB:
         return value
 
     def __setitem__(self, key, value):
+        if not isinstance(key, str):
+            raise Exception(f"keys can only be strings; {key} is not.")
+        if not isinstance(value, str):
+            raise Exception(f"values can only be strings; {value} is not.")
         if self._mem_table.capacity_reached():
             segment = self._write_to_segment()
             self._immutable_segments.append(segment)
