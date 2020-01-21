@@ -1,6 +1,6 @@
 import pytest
 
-from sst_engine.sst_engine import Segment, DB
+from sst_engine.sst_engine import Segment, DB, make_new_segment
 
 
 def test_segment_reads(segment):
@@ -47,8 +47,8 @@ def test_panic_when_writing_unsorted_entries(segment):
 def test_simple_segment_chaining(segment):
     segment_1_entries = [("a", "1"), ("c", "3")]
     segment_2_entries = [("b", "5")]
-    segment_1 = Segment("seg_1.txt")
-    segment_2 = Segment("seg_2.txt")
+    segment_1 = make_new_segment()
+    segment_2 = make_new_segment()
     with segment_1.open("w"), segment_2.open("w"):
         for entry in segment_1_entries:
             segment_1.add_entry(entry)
@@ -67,8 +67,8 @@ def test_simple_segment_chaining(segment):
 def test_segment_chaining_with_duplicate_keys():
     segment_1_entries = [("a", "1"), ("c", "3")]
     segment_2_entries = [("a", "5")]
-    segment_1 = Segment("seg_1.txt")
-    segment_2 = Segment("seg_2.txt")
+    segment_1 = make_new_segment()
+    segment_2 = make_new_segment()
     with segment_1.open("w"), segment_2.open("w"):
         for entry in segment_1_entries:
             segment_1.add_entry(entry)
@@ -87,8 +87,8 @@ def test_segment_chaining_with_duplicate_keys():
 def test_segment_chaining_with_no_duplicate_keys():
     segment_1_entries = [("1", "a"), ("2", "n")]
     segment_2_entries = [("3", "c"), ("4", "d")]
-    segment_1 = Segment("seg_1.txt")
-    segment_2 = Segment("seg_2.txt")
+    segment_1 = make_new_segment()
+    segment_2 = make_new_segment()
     with segment_1.open("w"), segment_2.open("w"):
         for entry in segment_1_entries:
             segment_1.add_entry(entry)
@@ -105,8 +105,8 @@ def test_segment_chaining_with_no_duplicate_keys():
 def test_segment_chaining_outputs_only_unique_entries():
     segment_1_entries = [("1", "a"), ("2", "n")]
     segment_2_entries = [("1", "c"), ("4", "d")]
-    segment_1 = Segment("seg_1.txt")
-    segment_2 = Segment("seg_2.txt")
+    segment_1 = make_new_segment()
+    segment_2 = make_new_segment()
     with segment_1.open("w"), segment_2.open("w"):
         for entry in segment_1_entries:
             segment_1.add_entry(entry)

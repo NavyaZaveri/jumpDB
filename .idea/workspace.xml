@@ -3,7 +3,8 @@
   <component name="ChangeListManager">
     <list default="true" id="5a566fd7-fd93-4393-b4f9-1f9e2f0d9f06" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sst_engine/foo" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/seg_1.txt" beforeDir="false" afterPath="$PROJECT_DIR$/seg_1.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/seg_2.txt" beforeDir="false" afterPath="$PROJECT_DIR$/seg_2.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/sst_engine/sst_engine.py" beforeDir="false" afterPath="$PROJECT_DIR$/sst_engine/sst_engine.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -45,7 +46,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Python tests.pytest for test_db.test_db_search_for_for_deleted_key">
+  <component name="RunManager" selected="Python tests.pytest for test_db.test_db_deletion_on_nonexistent_key">
     <configuration name="test_db" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="sst_engine" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -67,6 +68,21 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <configuration name="pytest for test_db.test_db_deletion_on_nonexistent_key" type="tests" factoryName="py.test" temporary="true" nameIsGenerated="true">
+      <module name="sst_engine" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/tests" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="_new_keywords" value="&quot;&quot;" />
+      <option name="_new_additionalArguments" value="&quot;&quot;" />
+      <option name="_new_target" value="&quot;test_db.test_db_deletion_on_nonexistent_key&quot;" />
+      <option name="_new_targetType" value="&quot;PYTHON&quot;" />
+      <method v="2" />
+    </configuration>
     <configuration name="pytest for test_db.test_db_search_for_for_deleted_key" type="tests" factoryName="py.test" temporary="true" nameIsGenerated="true">
       <module name="sst_engine" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -79,21 +95,6 @@
       <option name="_new_keywords" value="&quot;&quot;" />
       <option name="_new_additionalArguments" value="&quot;&quot;" />
       <option name="_new_target" value="&quot;test_db.test_db_search_for_for_deleted_key&quot;" />
-      <option name="_new_targetType" value="&quot;PYTHON&quot;" />
-      <method v="2" />
-    </configuration>
-    <configuration name="pytest for test_db.test_db_search_with_multiple_segments" type="tests" factoryName="py.test" temporary="true" nameIsGenerated="true">
-      <module name="sst_engine" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/tests" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="_new_keywords" value="&quot;&quot;" />
-      <option name="_new_additionalArguments" value="&quot;&quot;" />
-      <option name="_new_target" value="&quot;test_db.test_db_search_with_multiple_segments&quot;" />
       <option name="_new_targetType" value="&quot;PYTHON&quot;" />
       <method v="2" />
     </configuration>
@@ -129,11 +130,11 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Python tests.pytest for test_db.test_db_deletion_on_nonexistent_key" />
+        <item itemvalue="Python.test_db" />
         <item itemvalue="Python tests.pytest for test_db.test_db_search_for_for_deleted_key" />
         <item itemvalue="Python tests.pytest for test_db.test_db_search_with_single_merged_segment" />
         <item itemvalue="Python tests.pytest for test_db.test_deletion" />
-        <item itemvalue="Python tests.pytest for test_db.test_db_search_with_multiple_segments" />
-        <item itemvalue="Python.test_db" />
       </list>
     </recent_temporary>
   </component>

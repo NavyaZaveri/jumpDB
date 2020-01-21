@@ -65,3 +65,9 @@ def test_db_contains_key():
     del db["k2"]
     assert "k1" in db
     assert "k2" not in db
+
+
+def test_db_deletion_on_nonexistent_key():
+    db = DB(max_inmemory_size=2, segment_size=2)
+    with pytest.raises(Exception):
+        _ = db["k1"]

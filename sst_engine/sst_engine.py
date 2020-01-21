@@ -164,14 +164,14 @@ class DB:
         """
 
         :param max_inmemory_size: maximum number of entries to hold in memory.
-        :param sparse_offset: frequency of key offsets kept in memory. (Eg: if `sparse_offset=5`, we store one key offset
+        :param sparse_offset: frequency of key offsets kept in memory. (Eg: if `sparse_offset=5`, one key offset is kept
          in memory for every 5 entries.)
         :param segment_size: maximum number of entries in a given segment.
         """
-        self.mem_table = MemTable(max_inmemory_size)
+        self._mem_table = MemTable(max_inmemory_size)
         self.max_inmemory_size = max_inmemory_size
         self._immutable_segments = []
-        self.sparse_memory_index = SortedDict()
+        self._sparse_memory_index = SortedDict()
         self.sparse_offset = sparse_offset
         self.segment_size = segment_size
 
@@ -179,13 +179,13 @@ class DB:
         return len(self._immutable_segments)
 
     def get(self, item):
-        if item in self.mem_table:
-            value = self.mem_table[item]
+        if item in self._mem_table:
+            value = self._mem_table[item]
             if value == TOMBSTONE:
                 return None
             return value
-        closest_key = next(self.sparse_memory_index.irange(maximum=item, reverse=True))
-        segment, offset = self.sparse_memory_index[closest_key].segment, self.sparse_memory_index[closest_key].offset
+        closest_key = next(self._sparse_memory_index.irange(maximum=item, reverse=True))
+        segment, offset = self._sparse_memory_index[closest_key].segment, self._sparse_memory_index[closest_key].offset
         entry = search_entry_in_segment(segment, item, offset)
         if entry is not None:
             return entry.value
@@ -202,27 +202,30 @@ class DB:
         return value
 
     def __setitem__(self, key, value):
-        if self.mem_table.capacity_reached():
+        if self._mem_table.capacity_reached():
             segment = self._write_to_segment()
             self._immutable_segments.append(segment)
             if len(self._immutable_segments) >= 2:
                 merged_segments = self.merge(*self._immutable_segments)
                 self._immutable_segments = merged_segments
-                self.sparse_memory_index.clear()
+                self._sparse_memory_index.clear()
                 count = 0
                 for segment in self._immutable_segments:
                     with segment.open("r"):
                         for offset, entry in segment.offsets_and_entries():
                             if count % self.sparse_offset == 0:
-                                self.sparse_memory_index[entry.key] = KeyDirEntry(offset=offset, segment=segment)
+                                self._sparse_memory_index[entry.key] = KeyDirEntry(offset=offset, segment=segment)
                             count += 1
-            self.mem_table.clear()
-            self.mem_table[key] = value
+            self._mem_table.clear()
+            self._mem_table[key] = value
         else:
-            self.mem_table[key] = value
+            self._mem_table[key] = value
 
     def __delitem__(self, key):
-        self.mem_table[key] = TOMBSTONE
+        if self.get(key) is not None:
+            self._mem_table[key] = TOMBSTONE
+        else:
+            raise Exception(f"{key} does not exist in the db; thus, cannot delete")
 
     def __contains__(self, item):
         return self.get(item) is not None
@@ -249,11 +252,11 @@ class DB:
         segment = make_new_segment()
         with segment.open("w") as segment:
             count = 0
-            for (k, v) in self.mem_table:
+            for (k, v) in self._mem_table:
                 if v != TOMBSTONE:  # if a key was deleted, there's no need to put in the segment
                     offset = segment.add_entry((k, v))
                     if count % self.sparse_offset == 0:
-                        self.sparse_memory_index[k] = KeyDirEntry(offset=offset, segment=segment)
+                        self._sparse_memory_index[k] = KeyDirEntry(offset=offset, segment=segment)
                     count += 1
 
         return segment
