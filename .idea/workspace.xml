@@ -3,8 +3,6 @@
   <component name="ChangeListManager">
     <list default="true" id="5a566fd7-fd93-4393-b4f9-1f9e2f0d9f06" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/seg_1.txt" beforeDir="false" afterPath="$PROJECT_DIR$/seg_1.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/seg_2.txt" beforeDir="false" afterPath="$PROJECT_DIR$/seg_2.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/sst_engine/sst_engine.py" beforeDir="false" afterPath="$PROJECT_DIR$/sst_engine/sst_engine.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />

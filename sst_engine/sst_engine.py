@@ -56,11 +56,11 @@ class Segment:
         self.previous_entry_key = None
         self.size = 0
 
-    def search(self, query_entry_key, offset):
+    def search(self, query, offset=0):
         self.fd.seek(offset)
         while not self.reached_eof():
             entry = self.read_entry()
-            if entry.key == query_entry_key:
+            if entry.key == query:
                 return entry
         return None
 
@@ -194,6 +194,9 @@ class DB:
             entry = search_entry_in_segment(next_segment, item, offset)
             return entry.value
         return None
+
+    def insert(self, key, value):
+        self[key] = value
 
     def __getitem__(self, item):
         value = self.get(item)
