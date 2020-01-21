@@ -94,7 +94,7 @@ class Segment:
         key = entry[0]
         value = entry[1]
         if not isinstance(value, str):
-            raise Exception("value needs to be a string, but {value} is not")
+            raise Exception(f"value needs to be a string, but {value} is not")
 
         if self.previous_entry_key is not None and self.previous_entry_key > key:
             raise UnsortedEntries(f"Tried to insert {key}, but previous entry {self.previous_entry_key} is bigger")
@@ -184,6 +184,8 @@ class DB:
             if value == TOMBSTONE:
                 return None
             return value
+        if len(self._sparse_memory_index) == 0:
+            return None
         closest_key = next(self._sparse_memory_index.irange(maximum=item, reverse=True))
         segment, offset = self._sparse_memory_index[closest_key].segment, self._sparse_memory_index[closest_key].offset
         entry = search_entry_in_segment(segment, item, offset)
