@@ -1,17 +1,18 @@
+import json
+import tempfile
 import time
 import uuid
+from contextlib import contextmanager
 
 import attr
-from sortedcontainers import SortedDict, SortedSet
-from collections import defaultdict
-from contextlib import contextmanager
-import json
+from sortedcontainers import SortedDict
 
 TOMBSTONE = str(uuid.uuid5(uuid.NAMESPACE_OID, 'TOMBSTONE')).encode('ascii')
 
 
-def get_new_segment_name():
-    return str(time.time()) + ".txt"
+def make_new_segment():
+    fd, path = tempfile.mkstemp(prefix=str(time.time()), suffix="txt")
+    return Segment(path=path, fd=fd)
 
 
 def search_entry_in_segment(segment, key, offset):
@@ -49,9 +50,9 @@ class Segment:
     All k-v pairs will be sorted by key, with no duplicates
     """
 
-    def __init__(self, path):
+    def __init__(self, path, fd=None):
         self.path = path
-        self.fd = None
+        self.fd = fd
         self.previous_entry_key = None
         self.size = 0
 
@@ -123,16 +124,6 @@ class Segment:
             self.previous_entry_key = None
 
 
-class SparseMemoryIndex:
-    def __init__(self):
-        self.key_to_segments = defaultdict(list)
-        self.tree = SortedSet()
-
-    def __setitem__(self, key, value):
-        self.key_to_segments[key].append(value)
-        self.tree.add(key)
-
-
 @attr.s(frozen=True)
 class KeyDirEntry:
     offset = attr.ib()
@@ -170,41 +161,56 @@ class SegmentEntry:
 
 class DB:
     def __init__(self, max_inmemory_size=1000, sparse_offset=10, segment_size=10):
+        """
+
+        :param max_inmemory_size: maximum number of entries to hold in memory.
+        :param sparse_offset: frequency of key offsets kept in memory. (Eg: if `sparse_offset=5`, we store one key offset
+         in memory for every 5 entries.)
+        :param segment_size: maximum number of entries in a given segment.
+        """
         self.mem_table = MemTable(max_inmemory_size)
         self.max_inmemory_size = max_inmemory_size
-        self._key_offsets = []
-        self.immutable_segments = []
+        self._immutable_segments = []
         self.sparse_memory_index = SortedDict()
         self.sparse_offset = sparse_offset
         self.segment_size = segment_size
 
-    def __getitem__(self, item):
+    def segment_count(self):
+        return len(self._immutable_segments)
+
+    def get(self, item):
         if item in self.mem_table:
             value = self.mem_table[item]
             if value == TOMBSTONE:
-                raise RuntimeError("{item} was deleted.")
+                return None
             return value
         closest_key = next(self.sparse_memory_index.irange(maximum=item, reverse=True))
         segment, offset = self.sparse_memory_index[closest_key].segment, self.sparse_memory_index[closest_key].offset
         entry = search_entry_in_segment(segment, item, offset)
         if entry is not None:
             return entry.value
-        segment_index = self.immutable_segments.index(segment)
-        for next_segment in self.immutable_segments[segment_index + 1:]:
+        segment_index = self._immutable_segments.index(segment)
+        for next_segment in self._immutable_segments[segment_index + 1:]:
             entry = search_entry_in_segment(next_segment, item, offset)
             return entry.value
         return None
 
+    def __getitem__(self, item):
+        value = self.get(item)
+        if item is None:
+            raise RuntimeError(f"no value found for {item}")
+        return value
+
     def __setitem__(self, key, value):
         if self.mem_table.capacity_reached():
             segment = self._write_to_segment()
-            self.immutable_segments.append(segment)
-            if len(self.immutable_segments) >= 2:
-                merged_segments = self.merge(*self.immutable_segments)
-                self.immutable_segments = merged_segments
+            self._immutable_segments.append(segment)
+            if len(self._immutable_segments) >= 2:
+                merged_segments = self.merge(*self._immutable_segments)
+                self._immutable_segments = merged_segments
                 self.sparse_memory_index.clear()
                 count = 0
-                for segment in self.immutable_segments:
+                for segment in self._immutable_segments:
                     with segment.open("r"):
                         for offset, entry in segment.offsets_and_entries():
                             if count % self.sparse_offset == 0:
@@ -219,7 +225,7 @@ class DB:
         self.mem_table[key] = TOMBSTONE
 
     def __contains__(self, item):
-        pass
+        return self.get(item) is not None
 
     def merge(self, s1, s2):
         merged_segments = []
@@ -231,16 +237,16 @@ class DB:
                     new_segment.add_entry(entry)
                     count += 1
                     if count == self.segment_size:
-                        merge_into(Segment(get_new_segment_name()), chain_gen)
+                        merge_into(make_new_segment(), chain_gen)
                         break
             if len(new_segment) >= 1:  # just in case the generator doesn't yield anything
                 merged_segments.append(new_segment)
 
-        merge_into(Segment(get_new_segment_name()), chain_segments(s1, s2))
+        merge_into(make_new_segment(), chain_segments(s1, s2))
         return merged_segments[::-1]
 
     def _write_to_segment(self):
-        segment = Segment(get_new_segment_name())
+        segment = make_new_segment()
         with segment.open("w") as segment:
             count = 0
             for (k, v) in self.mem_table:

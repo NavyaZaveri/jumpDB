@@ -1,7 +1,7 @@
-from sst_engine.sst_engine import Segment
+from sst_engine.sst_engine import make_new_segment
 import pytest
 
 
 @pytest.fixture()
 def segment():
-    return Segment("data.txt")
+    return make_new_segment()
