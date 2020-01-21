@@ -4,7 +4,7 @@ from sst_engine.sst_engine import Segment, DB
 
 
 def test_segment_reads(segment):
-    entries = [("0", 0), ("hello", "world")]
+    entries = [("0", "0"), ("hello", "world")]
     with segment.open("w") as s:
         for entry in entries:
             s.add_entry(entry)
@@ -45,11 +45,10 @@ def test_panic_when_writing_unsorted_entries(segment):
 
 
 def test_simple_segment_chaining(segment):
-    segment_1_entries = [("a", 1), ("c", 3)]
-    segment_2_entries = [("b", 5)]
+    segment_1_entries = [("a", "1"), ("c", "3")]
+    segment_2_entries = [("b", "5")]
     segment_1 = Segment("seg_1.txt")
     segment_2 = Segment("seg_2.txt")
-    segment_3 = Segment("seg_3.txt")
     with segment_1.open("w"), segment_2.open("w"):
         for entry in segment_1_entries:
             segment_1.add_entry(entry)
@@ -66,8 +65,8 @@ def test_simple_segment_chaining(segment):
 
 
 def test_segment_chaining_with_duplicate_keys():
-    segment_1_entries = [("a", 1), ("c", 3)]
-    segment_2_entries = [("a", 5)]
+    segment_1_entries = [("a", "1"), ("c", "3")]
+    segment_2_entries = [("a", "5")]
     segment_1 = Segment("seg_1.txt")
     segment_2 = Segment("seg_2.txt")
     with segment_1.open("w"), segment_2.open("w"):
@@ -82,12 +81,12 @@ def test_segment_chaining_with_duplicate_keys():
     segment_3 = merged_segments.pop()
     with segment_3.open("r") as s3:
         assert [e.to_pair() for e in s3.entries()] \
-               == [("a", 5), ("c", 3)]
+               == [("a", "5"), ("c", "3")]
 
 
 def test_segment_chaining_with_no_duplicate_keys():
-    segment_1_entries = [(str(i), i) for i in range(0, 10)]
-    segment_2_entries = [(str(i), i) for i in range(10, 20)]
+    segment_1_entries = [("1", "a"), ("2", "n")]
+    segment_2_entries = [("3", "c"), ("4", "d")]
     segment_1 = Segment("seg_1.txt")
     segment_2 = Segment("seg_2.txt")
     with segment_1.open("w"), segment_2.open("w"):
@@ -95,9 +94,26 @@ def test_segment_chaining_with_no_duplicate_keys():
             segment_1.add_entry(entry)
         for entry in segment_2_entries:
             segment_2.add_entry(entry)
-    db = DB(segment_size=10)
+    db = DB(segment_size=2)
     merged_segments = db.merge(segment_1, segment_2)
     assert len(merged_segments) == 2
-    with merged_segments[0].open("r") as s1, merged_segments[1].open("r") as s2:
-        assert [e.to_pair() for e in s1.entries()] is not None
-        assert [e.to_pair() for e in s2.entries()] is not None
+    with merged_segments[0].open("r") as s3, merged_segments[1].open("r") as s4:
+        assert [e.to_pair() for e in s3.entries()] == segment_1_entries
+        assert [e.to_pair() for e in s4.entries()] == segment_2_entries
+
+
+def test_segment_chaining_outputs_only_unique_entries():
+    segment_1_entries = [("1", "a"), ("2", "n")]
+    segment_2_entries = [("1", "c"), ("4", "d")]
+    segment_1 = Segment("seg_1.txt")
+    segment_2 = Segment("seg_2.txt")
+    with segment_1.open("w"), segment_2.open("w"):
+        for entry in segment_1_entries:
+            segment_1.add_entry(entry)
+        for entry in segment_2_entries:
+            segment_2.add_entry(entry)
+    db = DB(segment_size=3)
+    merged_segments = db.merge(segment_1, segment_2)
+    assert len(merged_segments) == 1
+    with merged_segments[0].open("r") as s3:
+        assert [e.to_pair() for e in s3.entries()] == [("1", "c"), ("2", "n"), ("4", "d")]
