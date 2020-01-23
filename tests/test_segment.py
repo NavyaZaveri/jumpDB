@@ -55,7 +55,7 @@ def test_simple_segment_chaining(segment):
         for entry in segment_2_entries:
             segment_2.add_entry(entry)
 
-    db = DB()
+    db = DB(persist_segments=False)
     merged_segments = db.merge(segment_1, segment_2)
     assert len(merged_segments) == 1
     segment_3 = merged_segments.pop()
@@ -75,7 +75,7 @@ def test_segment_chaining_with_duplicate_keys():
         for entry in segment_2_entries:
             segment_2.add_entry(entry)
 
-    db = DB()
+    db = DB(persist_segments=False)
     merged_segments = db.merge(segment_1, segment_2)
     assert len(merged_segments) == 1
     segment_3 = merged_segments.pop()
@@ -94,7 +94,7 @@ def test_segment_chaining_with_no_duplicate_keys():
             segment_1.add_entry(entry)
         for entry in segment_2_entries:
             segment_2.add_entry(entry)
-    db = DB(segment_size=2)
+    db = DB(segment_size=2, persist_segments=False)
     merged_segments = db.merge(segment_1, segment_2)
     assert len(merged_segments) == 2
     with merged_segments[0].open("r") as s3, merged_segments[1].open("r") as s4:
@@ -112,7 +112,7 @@ def test_segment_chaining_outputs_unique_entries():
             segment_1.add_entry(entry)
         for entry in segment_2_entries:
             segment_2.add_entry(entry)
-    db = DB(segment_size=3)
+    db = DB(segment_size=3, persist_segments=False)
     merged_segments = db.merge(segment_1, segment_2)
     assert len(merged_segments) == 1
     with merged_segments[0].open("r") as s3:

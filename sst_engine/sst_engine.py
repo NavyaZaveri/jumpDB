@@ -1,4 +1,6 @@
+import os
 import json
+import re
 import tempfile
 import time
 import uuid
@@ -9,9 +11,23 @@ import attr
 from sortedcontainers import SortedDict
 
 TOMBSTONE = str(uuid.uuid5(uuid.NAMESPACE_OID, 'TOMBSTONE')).encode('ascii')
+DATA_FILE_PATH = "sst_data"
 
 
-def make_new_segment():
+def make_new_segment(persist=False):
+    if persist:
+        return make_persistent_segment()
+    return make_temp_segment()
+
+
+def make_persistent_segment():
+    if not os.path.exists(DATA_FILE_PATH):
+        os.makedirs(DATA_FILE_PATH)
+    filepath = os.path.join(DATA_FILE_PATH, str(time.time()) + ".txt")
+    return Segment(filepath)
+
+
+def make_temp_segment():
     fd, path = tempfile.mkstemp(prefix=str(time.time()), suffix="txt")
     return Segment(path=path, fd=fd)
 
@@ -168,7 +184,9 @@ class SegmentEntry:
 
 
 class DB:
-    def __init__(self, max_inmemory_size=1000, sparse_offset=10, segment_size=10):
+    def __init__(self, max_inmemory_size=1000, sparse_offset=100, segment_size=500,
+                 persist_segments=True,
+                 load_from_path=False):
         """
 
         :param max_inmemory_size: maximum number of entries to hold in memory.
@@ -184,6 +202,30 @@ class DB:
         self.segment_size = segment_size
         self._entries_deleted = 0
         self._bloom_filter = ScalableBloomFilter(mode=2)
+        self.persist = persist_segments
+        if load_from_path:
+            self._scan_path_for_segments()
+
+    def _scan_path_for_segments(self):
+
+        def segment_file_cmp(filename):
+
+            # extract float representing the time of segment creation
+            file_number = re.findall("[+-]?\d+\.\d+", filename)[0]
+            return float(file_number)
+
+        storage = []
+        if os.path.exists(DATA_FILE_PATH):
+            for entry in os.scandir(DATA_FILE_PATH):
+                storage.append(entry.path)
+        self._immutable_segments = [Segment(path) for path in sorted(storage, key=segment_file_cmp)]
+        count = 0
+        for segment in self._immutable_segments:
+            with segment.open("r"):
+                for offset, entry in segment.offsets_and_entries():
+                    if count % self.sparse_offset == 0:
+                        self._sparse_memory_index[entry.key] = KeyDirEntry(offset=offset, segment=segment)
+                    count += 1
 
     def segment_count(self):
         return len(self._immutable_segments)
@@ -221,6 +263,7 @@ class DB:
             raise Exception(f"keys can only be strings; {key} is not.")
         if not isinstance(value, str):
             raise Exception(f"values can only be strings; {value} is not.")
+
         self._bloom_filter.add(key)
         if self._mem_table.capacity_reached():
             segment = self._write_to_segment()
@@ -267,12 +310,12 @@ class DB:
                     new_segment.add_entry(entry)
                     count += 1
                     if count == self.segment_size:
-                        merge_into(make_new_segment(), chain_gen)
+                        merge_into(make_new_segment(self.persist), chain_gen)
                         break
             if len(new_segment) >= 1:  # just in case the generator doesn't yield anything
                 merged_segments.append(new_segment)
 
-        merge_into(make_new_segment(), chain_segments(s1, s2))
+        merge_into(make_new_segment(self.persist), chain_segments(s1, s2))
         return merged_segments[::-1]
 
     def _write_to_segment(self):
@@ -282,7 +325,7 @@ class DB:
 
         :return: Segment with contents of the memtable
         """
-        segment = make_new_segment()
+        segment = make_new_segment(self.persist)
         with segment.open("w") as segment:
             count = 0
             for (k, v) in self._mem_table:
