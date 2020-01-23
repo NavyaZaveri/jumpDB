@@ -102,7 +102,7 @@ def test_segment_chaining_with_no_duplicate_keys():
         assert [e.to_pair() for e in s4.entries()] == segment_2_entries
 
 
-def test_segment_chaining_outputs_only_unique_entries():
+def test_segment_chaining_outputs_unique_entries():
     segment_1_entries = [("1", "a"), ("2", "n")]
     segment_2_entries = [("1", "c"), ("4", "d")]
     segment_1 = make_new_segment()

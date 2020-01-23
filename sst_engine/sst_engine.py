@@ -3,6 +3,7 @@ import tempfile
 import time
 import uuid
 from contextlib import contextmanager
+from pybloom_live import ScalableBloomFilter
 
 import attr
 from sortedcontainers import SortedDict
@@ -106,7 +107,7 @@ class Segment:
         if self.previous_entry_key is not None and self.previous_entry_key > key:
             raise UnsortedEntries(f"Tried to insert {key}, but previous entry {self.previous_entry_key} is bigger")
 
-        json_str = json.dumps({entry[0]: entry[1]})
+        json_str = json.dumps({key: value})
         self.previous_entry_key = key
         pos = self.fd.tell()
         self.fd.write(json_str)
@@ -182,6 +183,7 @@ class DB:
         self.sparse_offset = sparse_offset
         self.segment_size = segment_size
         self._entries_deleted = 0
+        self._bloom_filter = ScalableBloomFilter(mode=2)
 
     def segment_count(self):
         return len(self._immutable_segments)
@@ -219,6 +221,7 @@ class DB:
             raise Exception(f"keys can only be strings; {key} is not.")
         if not isinstance(value, str):
             raise Exception(f"values can only be strings; {value} is not.")
+        self._bloom_filter.add(key)
         if self._mem_table.capacity_reached():
             segment = self._write_to_segment()
             self._immutable_segments.append(segment)
@@ -240,13 +243,15 @@ class DB:
             self._mem_table[key] = value
 
     def __delitem__(self, key):
-        if self.get(key) is not None:
+        if key in self:
             self._mem_table[key] = TOMBSTONE
             self._entries_deleted += 1
         else:
             raise Exception(f"{key} does not exist in the db; thus, cannot delete")
 
     def __contains__(self, item):
+        if item not in self._bloom_filter:
+            return False
         return self.get(item) is not None
 
     def inmemory_size(self):
