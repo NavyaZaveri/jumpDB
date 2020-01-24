@@ -15,20 +15,29 @@ TOMBSTONE = str(uuid.uuid5(uuid.NAMESPACE_OID, 'TOMBSTONE')).encode('ascii')
 SEGMENT_DIR = "sst_data"
 
 
-def make_new_segment(persist=False):
+def make_new_segment(persist=False, base_path=None):
+    if not base_path:
+        base_path = SEGMENT_DIR
     if persist:
-        return make_persistent_segment()
-    return make_temp_segment()
+        return make_persistent_segment(base_path)
+    return make_temp_segment(base_path)
 
 
-def merge_segments(segments):
+def chain_segments(*segments):
     """
-    Merges n segments into <=n new segments.
-    The idea is to maintain a heap parameterized on the entry key and reverse timestamp  at every iteration.
-    This ensures that the entries written into new segments are both sorted and most recent
+    Makes an iterator that yields entries from the input segments. The entries are sorted by key first, then timestamp.
 
-    :param segments:
-    :return:
+    **Implementation**:
+
+    The idea is to maintain a heap parameterized on the entry key and reverse timestamp at every iteration. At
+    the beginning of every iteration, we pop an element off the heap, then check if the key has been seen before.
+
+
+    If it hasn't, yield the entry, and add the next entry of the segment into the heap (as long as the segment ptr isn't at EOF). If
+    the key *has* been seen before, we ignore the current key as it comes from an older segment.
+
+    :param segments: input segments to be merged
+    :return: entry generator ordered by key and timestamp
     """
     with ExitStack() as stack:
         open_segments = [stack.enter_context(segment.open("r")) for segment in segments]
@@ -38,31 +47,31 @@ def merge_segments(segments):
             if not segment.reached_eof():
                 entry = segment.read_entry()
                 key = entry.key
-                heapq.heappush(heap, (key, -segment.timestamp(), entry, segment))
+                heapq.heappush(heap, (key, -segment.timestamp, entry, segment))
         while heap:
             key, ts, entry, segment = heapq.heappop(heap)
             if previous_entry is not None and entry.key == previous_entry.key:
                 if not segment.reached_eof():
                     next_entry = segment.read_entry()
                     next_key = next_entry.key
-                    heapq.heappush(heap, (next_key, -segment.timestamp(), next_entry, segment))
+                    heapq.heappush(heap, (next_key, -segment.timestamp, next_entry, segment))
                 continue
             yield entry
             previous_entry = entry
             if not segment.reached_eof():
                 next_entry = segment.read_entry()
                 next_key = next_entry.key
-                heapq.heappush(heap, (next_key, -segment.timestamp(), next_entry, segment))
+                heapq.heappush(heap, (next_key, -segment.timestamp, next_entry, segment))
 
 
-def make_persistent_segment():
-    if not os.path.exists(SEGMENT_DIR):
-        os.makedirs(SEGMENT_DIR)
-    filepath = os.path.join(SEGMENT_DIR, str(time.time()) + ".txt")
+def make_persistent_segment(base_path):
+    if not os.path.exists(base_path):
+        os.makedirs(base_path)
+    filepath = os.path.join(base_path, str(time.time()) + ".txt")
     return Segment(filepath)
 
 
-def make_temp_segment():
+def make_temp_segment(base_path):
     fd, path = tempfile.mkstemp(prefix=str(time.time()), suffix="txt")
     return Segment(path=path, fd=fd)
 
@@ -83,7 +92,7 @@ class UnsortedEntries(Exception):
 class Segment:
     """
     Segment represent a sorted string table (SST).
-    All k-v pairs will be sorted by key, with no duplicates
+    All k-v pairs will be sorted by key, with no duplicates.
     """
 
     def __init__(self, path, fd=None):
@@ -91,11 +100,16 @@ class Segment:
         self.fd = fd
         self.previous_entry_key = None
         self.size = 0
+        self._timestamp = self._extract_timestamp()
 
-    def timestamp(self):
+    def _extract_timestamp(self):
         # extract float representing the time of segment creation
         str_timestamp = re.findall("[+-]?\d+\.\d+", self.path)[0]
         return float(str_timestamp)
+
+    @property
+    def timestamp(self):
+        return self._timestamp
 
     def search(self, query, offset=0):
         self.fd.seek(offset)
@@ -109,7 +123,7 @@ class Segment:
         return self.size
 
     def __lt__(self, other):
-        return self.timestamp() < other.timestamp()
+        return self.timestamp < other.timestamp
 
     def reached_eof(self):
         cur_pos = self.fd.tell()
@@ -206,7 +220,7 @@ class SegmentEntry:
 class DB:
     def __init__(self, max_inmemory_size=1000, sparse_offset=100, segment_size=500,
                  persist_segments=True,
-                 load_from_path=False,
+                 path=None,
                  merge_threshold=2):
         """
 
@@ -217,6 +231,7 @@ class DB:
         :param persist_segments: if set to false, cleans up segment files in the end. Otherwise, retains the files in disk
         :param load_from_path: loads any segment files present in the current dir into the db
         :param merge_threshold: number of segment to keep in intact before merging
+        :param path: absolute path of directory to scan into for pre-existing segments
         """
         self._mem_table = MemTable(max_inmemory_size)
         self.max_inmemory_size = max_inmemory_size
@@ -228,18 +243,20 @@ class DB:
         self._bloom_filter = ScalableBloomFilter(mode=2)
         self.persist = persist_segments
         self._merge_threshold = merge_threshold
-        if load_from_path:
-            self._scan_path_for_segments()
+        self._base_path = None
+        if path:
+            self._base_path = path
+            self._scan_path_for_segments(path)
 
-    def _scan_path_for_segments(self):
+    def _scan_path_for_segments(self, path):
         """
 
         :return:
         """
 
         storage = []
-        if os.path.exists(SEGMENT_DIR):
-            for entry in os.scandir(SEGMENT_DIR):
+        if os.path.exists(path):
+            for entry in os.scandir(path):
                 storage.append(entry.path)
         self._immutable_segments = [Segment(path) for path in sorted(storage)]
         count = 0
@@ -272,7 +289,8 @@ class DB:
         # reverse order (to get the more recent entry) up to the current segment index
         for next_segment in self._immutable_segments[-1:segment_index:-1]:
             entry = search_entry_in_segment(next_segment, item, offset)
-            return entry.value
+            if entry is not None:
+                return entry.value
         return None
 
     def insert(self, key, value):
@@ -326,7 +344,7 @@ class DB:
     def inmemory_size(self):
         return len(self._mem_table) - self._entries_deleted
 
-    def merge(self, s1, s2):
+    def merge(self, *segments):
         merged_segments = []
 
         def merge_into(new_segment, chain_gen):
@@ -336,12 +354,12 @@ class DB:
                     new_segment.add_entry(entry)
                     count += 1
                     if count == self.segment_size:
-                        merge_into(make_new_segment(self.persist), chain_gen)
+                        merge_into(make_new_segment(self.persist, self._base_path), chain_gen)
                         break
             if len(new_segment) >= 1:  # just in case the generator doesn't yield anything
                 merged_segments.append(new_segment)
 
-        merge_into(make_new_segment(self.persist), merge_segments([s1, s2]))
+        merge_into(make_new_segment(self.persist, self._base_path), chain_segments(*segments))
         return merged_segments[::-1]
 
     def _write_to_segment(self):
@@ -351,7 +369,7 @@ class DB:
 
         :return: Segment with contents of the memtable
         """
-        segment = make_new_segment(self.persist)
+        segment = make_new_segment(self.persist, self._base_path)
         with segment.open("w") as segment:
             count = 0
             for (k, v) in self._mem_table:

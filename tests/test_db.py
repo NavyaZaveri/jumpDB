@@ -81,9 +81,20 @@ def test_db_segment_loading():
     with segment.open("w"):
         segment.add_entry(segment_entry)
     try:
-        db = DB(load_from_path=True)
+        current_test_path = os.path.abspath(os.path.join(segment.path, os.pardir))
+        db = DB(path=current_test_path)
         assert db.segment_count() == 1
         assert db["k1"] == "v1"
 
     finally:
         os.remove(segment.path)
+
+
+def test_merged_with_n_segments():
+    kv_pairs = [("k1", "v1"), ("k2", "v2"), ("k3", "v3"), ("k4", "k4"), ("k5", "v5")]
+    db = DB(max_inmemory_size=1, segment_size=1, merge_threshold=4, persist_segments=False)
+    for (k, v) in kv_pairs:
+        db[k] = v
+    assert db.segment_count() == 4
+    for (k, v) in kv_pairs:
+        assert db[k] == v
