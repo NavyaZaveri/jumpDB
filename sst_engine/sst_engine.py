@@ -20,7 +20,7 @@ def make_new_segment(persist=False, base_path=None):
         base_path = SEGMENT_DIR
     if persist:
         return make_persistent_segment(base_path)
-    return make_temp_segment(base_path)
+    return make_temp_segment()
 
 
 def chain_segments(*segments):
@@ -71,7 +71,7 @@ def make_persistent_segment(base_path):
     return Segment(filepath)
 
 
-def make_temp_segment(base_path):
+def make_temp_segment():
     fd, path = tempfile.mkstemp(prefix=str(time.time()), suffix="txt")
     return Segment(path=path, fd=fd)
 
