@@ -238,7 +238,7 @@ class DB:
         self._immutable_segments = []
         self._sparse_memory_index = SortedDict()
         self.sparse_offset = sparse_offset
-        self.segment_size = segment_size
+        self._segment_size = segment_size
         self._entries_deleted = 0
         self._bloom_filter = ScalableBloomFilter(mode=2)
         self.persist = persist_segments
@@ -353,7 +353,7 @@ class DB:
                 for entry in chain_gen:
                     new_segment.add_entry(entry)
                     count += 1
-                    if count == self.segment_size:
+                    if count == self._segment_size:
                         merge_into(make_new_segment(self.persist, self._base_path), chain_gen)
                         break
             if len(new_segment) >= 1:  # just in case the generator doesn't yield anything
