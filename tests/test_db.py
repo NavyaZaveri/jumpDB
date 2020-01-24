@@ -90,7 +90,7 @@ def test_db_segment_loading():
         os.remove(segment.path)
 
 
-def test_merged_with_n_segments():
+def test_merging_with_n_segments():
     kv_pairs = [("k1", "v1"), ("k2", "v2"), ("k3", "v3"), ("k4", "k4"), ("k5", "v5")]
     db = DB(max_inmemory_size=1, segment_size=1, merge_threshold=4, persist_segments=False)
     for (k, v) in kv_pairs:

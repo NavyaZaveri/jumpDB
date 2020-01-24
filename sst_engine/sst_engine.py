@@ -229,7 +229,6 @@ class DB:
          in memory for every 5 entries.)
         :param segment_size: maximum number of entries in a given segment.
         :param persist_segments: if set to false, cleans up segment files in the end. Otherwise, retains the files in disk
-        :param load_from_path: loads any segment files present in the current dir into the db
         :param merge_threshold: number of segment to keep in intact before merging
         :param path: absolute path of directory to scan into for pre-existing segments
         """
