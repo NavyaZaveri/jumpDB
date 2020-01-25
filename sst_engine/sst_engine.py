@@ -15,9 +15,7 @@ TOMBSTONE = str(uuid.uuid5(uuid.NAMESPACE_OID, 'TOMBSTONE')).encode('ascii')
 SEGMENT_DIR = "sst_data"
 
 
-def make_new_segment(persist=False, base_path=None):
-    if not base_path:
-        base_path = SEGMENT_DIR
+def make_new_segment(persist=False, base_path=SEGMENT_DIR):
     if persist:
         return make_persistent_segment(base_path)
     return make_temp_segment()
@@ -33,8 +31,8 @@ def chain_segments(*segments):
     the beginning of every iteration, we pop an element off the heap, then check if the key has been seen before.
 
 
-    If it hasn't, yield the entry, and add the next entry of the segment into the heap (as long as the segment ptr isn't at EOF). If
-    the key *has* been seen before, we ignore the current key as it comes from an older segment.
+    If it hasn't, yield the entry, and add the next entry of the segment into the heap (as long as the segment ptr
+    isn't at EOF). If the key *has* been seen before, we ignore the current key as it comes from an older segment.
 
     :param segments: input segments to be merged
     :return: entry generator ordered by key and timestamp
@@ -249,8 +247,7 @@ class DB:
 
     def _scan_path_for_segments(self, path):
         """
-
-        :return:
+        Scans the base path for previously existing segments.
         """
 
         storage = []

@@ -1,6 +1,6 @@
 import pytest
 
-from sst_engine.sst_engine import DB, make_new_segment
+from sst_engine import DB, make_new_segment
 
 
 def test_segment_reads(segment):

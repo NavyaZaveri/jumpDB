@@ -1,6 +1,6 @@
 import os
 
-from sst_engine.sst_engine import DB, make_new_segment
+from sst_engine import DB, make_new_segment
 import pytest
 
 
