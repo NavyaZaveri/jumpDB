@@ -1,4 +1,4 @@
-from sst_engine.sst_engine import make_new_segment
+from sst_engine import make_new_segment
 import pytest
 
 

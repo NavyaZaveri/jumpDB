@@ -21,6 +21,10 @@ def make_new_segment(persist=False, base_path=SEGMENT_DIR):
     return make_temp_segment()
 
 
+def delete_segment(segment):
+    os.remove(segment.path)
+
+
 def chain_segments(*segments):
     """
     Makes an iterator that yields entries from the input segments. The entries are sorted by key first, then timestamp.
@@ -298,6 +302,11 @@ class DB:
             raise RuntimeError(f"no value found for {item}")
         return value
 
+    def _clear_segment_list(self):
+        while self._immutable_segments:
+            segment = self._immutable_segments.pop()
+            delete_segment(segment)
+
     def __setitem__(self, key, value):
         if not isinstance(key, str):
             raise Exception(f"keys can only be strings; {key} is not.")
@@ -310,6 +319,7 @@ class DB:
             self._immutable_segments.append(segment)
             if len(self._immutable_segments) >= self._merge_threshold:
                 merged_segments = self.merge(*self._immutable_segments)
+                self._clear_segment_list()
                 self._immutable_segments = merged_segments
                 self._sparse_memory_index.clear()
                 count = 0
@@ -382,6 +392,11 @@ class DB:
 
 
 class MemTable:
+    """
+    Internal data structure built on top of a red-black BST. It holds entries in sorted order and should be used in
+    conjunction with sst_engine.DB
+    """
+
     def __init__(self, max_size):
         self._entries = SortedDict()
         self.max_size = max_size
