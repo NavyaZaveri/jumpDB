@@ -278,6 +278,7 @@ class DB:
             return value
         if len(self._sparse_memory_index) == 0:
             return None
+
         closest_key = next(self._sparse_memory_index.irange(maximum=item, reverse=True))
         segment, offset = self._sparse_memory_index[closest_key].segment, self._sparse_memory_index[closest_key].offset
         entry = search_entry_in_segment(segment, item, offset)

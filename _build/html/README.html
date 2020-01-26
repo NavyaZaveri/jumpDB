@@ -1,0 +1,123 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="python">
+  <head>
+    <meta charset="utf-8" />
+    <title>Write a simple kv store from first principles. &#8212; sst_engine 0.0.0 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="write-a-simple-kv-store-from-first-principles">
+<h1>Write a simple kv store from first principles.<a class="headerlink" href="#write-a-simple-kv-store-from-first-principles" title="Permalink to this headline">¶</a></h1>
+<p>This is a simple primer I hope would be useful to those wanting
+. The aim is to build to build your own key-value store from first principles up to a &quot;critical mass&quot; that
+you can later extend and</p>
+<div class="section" id="motivation">
+<h2>Motivation<a class="headerlink" href="#motivation" title="Permalink to this headline">¶</a></h2>
+<p>A hashamp can hold enriees in memory with a capacity bound by RAM.
+Sometimes that bound isn't enough; we'd like a &quot;bigger&quot; hashmap -- one that's bound
+by disk-space.</p>
+<p>First, let's establish some performance benchamrks for <code class="docutils literal notranslate"><span class="pre">get()</span></code>, and <code class="docutils literal notranslate"><span class="pre">set()</span></code> operations</p>
+<p>A naive, inefficient solution to sole the problem something like the following:</p>
+<ul class="simple">
+<li><p>Insert an entry into a hashamp</p></li>
+<li><p>As soon as  the capacity reaches, RAM dump all entries into a file and clear the in-memory map.</p></li>
+<li><p>For a <code class="docutils literal notranslate"><span class="pre">get()</span></code> query, lookup the hashamp first; if the key isn't present, look into all existing files for the key-value pair</p></li>
+<li><p>Repeat (1)</p></li>
+</ul>
+<p>This works and is relatively easy to implement, but is quite inefficient. If the user performs and <code class="docutils literal notranslate"><span class="pre">get()</span></code> and the key isn't present in the
+hashamp, we'd have to linearly scan into every file to search for the entry. So if there are <code class="docutils literal notranslate"><span class="pre">n</span></code> entries in total,
+that means a <code class="docutils literal notranslate"><span class="pre">get()</span></code> would take an average of  <code class="docutils literal notranslate"><span class="pre">O(n)</span></code></p>
+</div>
+<div class="section" id="design-implementation">
+<h2>Design &amp; Implementation<a class="headerlink" href="#design-implementation" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">sst_engine</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Navya Zaveri.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/README.md.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
