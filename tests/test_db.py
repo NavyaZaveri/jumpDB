@@ -122,3 +122,24 @@ def test_internal_segment_ordering():
         os.remove(segment_1.path)
         os.remove(segment_2.path)
         os.remove(segment_3.path)
+
+
+def test_breaking():
+    segment_1 = make_new_segment(persist=True, base_path="sst_data")
+    segment_1_entries = [("k1", "v1"), ("k1_1", "v1")]
+    segment_2 = make_new_segment(persist=True, base_path="sst_data")
+    segment_2_entries = [("k1", "v1")]
+    with segment_1.open("w"), segment_2.open("w"):
+        for e in segment_1_entries:
+            segment_1.add_entry(e)
+        for e in segment_2_entries:
+            segment_2.add_entry(e)
+    try:
+        current_test_path = os.path.abspath(os.path.join(os.getcwd(), "sst_data"))
+        db = DB(path=current_test_path, sparse_offset=2)
+        # assert db.segment_count() == 3
+        assert db["k1_1"] == "v2"
+
+    finally:
+        os.remove(segment_1.path)
+        os.remove(segment_2.path)

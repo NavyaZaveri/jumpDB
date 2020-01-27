@@ -18,7 +18,7 @@ First, let's establish some performance benchamrks for `get()`, and `set()` oper
 
 A naive, inefficient solution to sole the problem something like the following: 
 
-* Insert an entry into a hashamp 
+* Insert an entry into a hashmap []()
 
 * As soon as  the capacity reaches, RAM dump all entries into a file and clear the in-memory map. 
 

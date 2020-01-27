@@ -45,12 +45,44 @@
 </div>
 <div class="section" id="features">
 <h2>Features<a class="headerlink" href="#features" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">pip3</span> <span class="pre">install</span> <span class="pre">&lt;todo&gt;</span></code></p>
+</div>
+<div class="section" id="api">
+<h2>API<a class="headerlink" href="#api" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
-<li><p>get()</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">get</span></code>(key) =&gt;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">set(key)</span></code> =&gt;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">range()</span></code> =&gt;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">delete(key)</span></code> =&gt;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">contains(key)</span></code> =&gt;</p></li>
 </ul>
+</div>
+<div class="section" id="design-implementation">
+<h2>Design &amp; Implementation<a class="headerlink" href="#design-implementation" title="Permalink to this headline">¶</a></h2>
+<p>Th design philoshopy is essentially a simplified version of levelDB.</p>
+<p>Every write is initially inserted into an in-memory data structure (typically called &quot;memtable)
+-- in this case,  red-black tree.</p>
+<p>When the memtable's size exceeds a certain threshold, all entries are written out into a segment file.
+Due to the nature of the internal data-structure for the memtable, all entries will be written in sorted order:
+the resulting file is termed a sorted-string table (SST).</p>
+<p>Whilst performing the above write, we also maintain a sparse index table, keeping track of the
+file offset of every in 1 in x entries. The reason is to enable faster reads:</p>
+<p>When a read comes in, we first look into the memtable for the corresponding k-v pair; if it doesn't exist,
+we look at the <em>closest</em> entry (by key) in the sparse table. We jump to the file offset of that entry and linearly scan forwards into
+the file until we find the desire key-value pair. This is only possible because the file is an SSTable sorted by key.
+A good sparse offset should ensure that the time complexity for reads is on average <code class="docutils literal notranslate"><span class="pre">O(log(n))</span></code></p>
+<p>Periodically, the segments are merged (also called &quot;compaction&quot;); this ensures a reduction
+in memory footprint by removing old entries and thus decreasing the number of segments.</p>
+<p>An addition optimisation includes the use of bloom-filters to check if a key is not present in
+the DB. The naive alternative is to look into tree first, then every single segment; this has a much worse
+time complexity.</p>
 </div>
 <div class="section" id="contribute">
 <h2>Contribute<a class="headerlink" href="#contribute" title="Permalink to this headline">¶</a></h2>
+<p>Visit <url>  to submit issues and open PRs</p>
 </div>
 </div>
 

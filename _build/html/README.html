@@ -43,7 +43,7 @@ by disk-space.</p>
 <p>First, let's establish some performance benchamrks for <code class="docutils literal notranslate"><span class="pre">get()</span></code>, and <code class="docutils literal notranslate"><span class="pre">set()</span></code> operations</p>
 <p>A naive, inefficient solution to sole the problem something like the following:</p>
 <ul class="simple">
-<li><p>Insert an entry into a hashamp</p></li>
+<li><p>Insert an entry into a hashmap <a class="reference external" href="#"></a></p></li>
 <li><p>As soon as  the capacity reaches, RAM dump all entries into a file and clear the in-memory map.</p></li>
 <li><p>For a <code class="docutils literal notranslate"><span class="pre">get()</span></code> query, lookup the hashamp first; if the key isn't present, look into all existing files for the key-value pair</p></li>
 <li><p>Repeat (1)</p></li>
