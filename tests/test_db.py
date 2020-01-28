@@ -124,9 +124,17 @@ def test_internal_segment_ordering():
         os.remove(segment_3.path)
 
 
-def test_breaking():
+def test_worst_case_get():
+    """
+    In this specific example, we try to find the value corresponding to "k1_1"
+
+    With the given db parameters, the sparse index will  one entry: "k1" -> segment_2
+    Thus, we now have to look into all all segments before segment_2 to find correct entry
+
+    :return:
+    """
     segment_1 = make_new_segment(persist=True, base_path="sst_data")
-    segment_1_entries = [("k1", "v1"), ("k1_1", "v1")]
+    segment_1_entries = [("k1", "v1"), ("k1_1", "v_1")]
     segment_2 = make_new_segment(persist=True, base_path="sst_data")
     segment_2_entries = [("k1", "v1")]
     with segment_1.open("w"), segment_2.open("w"):
@@ -137,9 +145,8 @@ def test_breaking():
     try:
         current_test_path = os.path.abspath(os.path.join(os.getcwd(), "sst_data"))
         db = DB(path=current_test_path, sparse_offset=2)
-        # assert db.segment_count() == 3
-        assert db["k1_1"] == "v2"
-
+        assert db.segment_count() == 2
+        assert db["k1_1"] == "v_1"
     finally:
         os.remove(segment_1.path)
         os.remove(segment_2.path)

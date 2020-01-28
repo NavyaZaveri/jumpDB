@@ -249,6 +249,19 @@ class DB:
             self._base_path = path
             self._scan_path_for_segments(path)
 
+    def _update_sparse_memory_index(self):
+        count = 0
+        for segment in self._immutable_segments:
+            with segment.open("r"):
+                for offset, entry in segment.offsets_and_entries():
+                    if count % self.sparse_offset == 0:
+                        key = entry.key
+                        key_dir_entry = KeyDirEntry(offset=offset, segment=segment)
+                        if key not in self._sparse_memory_index:
+                            self._sparse_memory_index[key] = []
+                        self._sparse_memory_index[key].append(key_dir_entry)
+                    count += 1
+
     def _scan_path_for_segments(self, path):
         """
         Scans the base path for previously existing segments.
@@ -259,18 +272,22 @@ class DB:
             for entry in os.scandir(path):
                 storage.append(entry.path)
         self._immutable_segments = [Segment(path) for path in sorted(storage)]
-        count = 0
-        for segment in self._immutable_segments:
-            with segment.open("r"):
-                for offset, entry in segment.offsets_and_entries():
-                    if count % self.sparse_offset == 0:
-                        self._sparse_memory_index[entry.key] = KeyDirEntry(offset=offset, segment=segment)
-                    count += 1
+        self._update_sparse_memory_index()
 
     def segment_count(self):
         return len(self._immutable_segments)
 
     def get(self, item):
+        """
+
+        () Check if the key is in the memtable. If not:
+
+        (2) Find all keys smaller than the query, and  for each key scan forwards from its offset to find the entry for the query
+
+        (3) If (1) and (2) fail, finally check all segments in reverse order, making sure that a segment isn't checked twice
+
+
+        """
         if item in self._mem_table:
             value = self._mem_table[item]
             if value == TOMBSTONE:
@@ -279,19 +296,25 @@ class DB:
         if len(self._sparse_memory_index) == 0:
             return None
 
-        closest_key = next(self._sparse_memory_index.irange(maximum=item, reverse=True))
-        segment, offset = self._sparse_memory_index[closest_key].segment, self._sparse_memory_index[closest_key].offset
-        entry = search_entry_in_segment(segment, item, offset)
-        if entry is not None:
-            return entry.value
-        segment_index = self._immutable_segments.index(segment)
+        segments_seen = set()
+        for closest_key in self._sparse_memory_index.irange(maximum=item, reverse=True):
+            for keydir_entry in self._sparse_memory_index[closest_key]:
+                segment, offset = keydir_entry.segment, keydir_entry.offset
+                if segment in segments_seen:
+                    continue
+                entry = search_entry_in_segment(segment, item, offset)
+                if entry is not None:
+                    return entry.value
+                segments_seen.add(segment)
 
-        # segments are ordered by time; so we just need to search all existing segments in
-        # reverse order (to get the more recent entry) up to the current segment index
-        for next_segment in self._immutable_segments[-1:segment_index:-1]:
-            entry = search_entry_in_segment(next_segment, item, offset)
-            if entry is not None:
+        for segment in self._immutable_segments[::-1]:
+            if segment in segments_seen:
+                continue
+            entry = search_entry_in_segment(segment, item, 0)
+            if entry:
                 return entry.value
+            segments_seen.add(segment)
+
         return None
 
     def insert(self, key, value):
@@ -323,13 +346,8 @@ class DB:
                 self._clear_segment_list()
                 self._immutable_segments = merged_segments
                 self._sparse_memory_index.clear()
-                count = 0
-                for segment in self._immutable_segments:
-                    with segment.open("r"):
-                        for offset, entry in segment.offsets_and_entries():
-                            if count % self.sparse_offset == 0:
-                                self._sparse_memory_index[entry.key] = KeyDirEntry(offset=offset, segment=segment)
-                            count += 1
+                self._update_sparse_memory_index()
+
             self._mem_table.clear()
             self._entries_deleted = 0
             self._mem_table[key] = value
@@ -380,10 +398,12 @@ class DB:
         with segment.open("w") as segment:
             count = 0
             for (k, v) in self._mem_table:
-                if v != TOMBSTONE:  # if a key was deleted, there's no need to put in the segment
+                if v != TOMBSTONE:  # TOMBSTONE = deleted entry; we don't put deleted entries in segments
                     offset = segment.add_entry((k, v))
                     if count % self.sparse_offset == 0:
-                        self._sparse_memory_index[k] = KeyDirEntry(offset=offset, segment=segment)
+                        if k not in self._sparse_memory_index:
+                            self._sparse_memory_index[k] = []
+                        self._sparse_memory_index[k].append(KeyDirEntry(offset=offset, segment=segment))
                     count += 1
 
         return segment
