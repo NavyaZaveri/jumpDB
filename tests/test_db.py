@@ -128,7 +128,7 @@ def test_internal_segment_ordering():
 
 def test_worst_case_get():
     """
-    In this specific example, we try to find the value corresponding to "k1_1"
+    In this test, we try to find the value corresponding to "k1_1"
 
     With the given db parameters, the sparse index will  have only one entry: "k1" -> segment_2
     Thus, we now have to look into all all segments to find correct entry
