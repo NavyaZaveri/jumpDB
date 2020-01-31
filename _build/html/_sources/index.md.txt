@@ -1,4 +1,4 @@
-### Welcome to sst_engine's documentation! 
+### Welcome to jumpDB's documentation!
 
 
 *sst_engine* is a simple key-value store, powered by SSTables. 

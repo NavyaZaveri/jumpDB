@@ -312,22 +312,9 @@ class DB:
         return len(self._immutable_segments)
 
     def range_query(self, mn, mx, fold):
-        def item():
-            pass
-
-        pass
+        raise NotImplemented
 
     def get(self, item):
-        """
-
-        () Check if the key is in the memtable. If not:
-
-        (2) Find all keys smaller than the query, and  for each key scan forwards from its offset to find the entry for the query
-
-        (3) If (1) and (2) fail, finally check all segments in reverse order, making sure that a segment isn't checked twice
-
-
-        """
         if item in self._mem_table:
             value = self._mem_table[item]
             if value == TOMBSTONE:
@@ -349,6 +336,7 @@ class DB:
                     return entry.value
                 segments_seen.add(segment)
 
+        # again, reverse order because we want to look into more recent segments
         for segment in self._immutable_segments[::-1]:
             if segment in segments_seen:
                 continue
@@ -457,7 +445,7 @@ class DB:
 class MemTable:
     """
     Internal data structure built on top of a red-black BST. It holds entries in sorted order and should be used in
-    conjunction with sst_engine.DB
+    conjunction with jumpDB.DB
     """
 
     def __init__(self, max_size):

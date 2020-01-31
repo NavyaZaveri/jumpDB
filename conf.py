@@ -24,7 +24,7 @@ source_parsers = {
 
 source_suffix = ['.rst', '.md']
 
-project = 'sst_engine'
+project = 'jumpDB'
 copyright = '2020, Navya Zaveri'
 author = 'Navya Zaveri'
 

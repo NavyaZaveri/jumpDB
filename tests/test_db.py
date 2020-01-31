@@ -1,6 +1,6 @@
 import os
 
-from sst_engine import DB, make_new_segment
+from jumpDB import DB, make_new_segment
 import pytest
 
 
