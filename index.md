@@ -42,7 +42,7 @@ assert db["foo"] == "bar"
 
 Th design philosophy is essentially a simplified version of levelDB. 
 
-Every write is initially inserted into an in-memory data structure (typically called "memtable)
+Every write is initially inserted into an in-memory data structure (typically called "memtable")
  -- in this case,  red-black tree. 
  
 When the memtable's size exceeds a certain threshold, all entries are written out into a segment file. 
@@ -50,12 +50,11 @@ Due to the nature of the internal data-structure for the memtable, all entries w
 the resulting file is termed a sorted-string table (SST).
 
 Whilst performing the above write, we also maintain a sparse index table, keeping track of the 
-file offset of every in 1 in x entries. The reason is to enable faster reads:
+file offset of every in 1 in x entries. 
 
 When a read comes in, we first look into the memtable for the corresponding k-v pair; if it doesn't exist, 
 we look at the *closest* entry (by key) in the sparse table. We jump to the file offset of that entry and linearly scan forwards into 
-the file until we find the desire key-value pair. This is only possible because the file is an SSTable sorted by key. 
-A good sparse offset should ensure that the time complexity for reads is on average `O(log(n))`
+the file until we find the desire key-value pair. This is only possible because the file is sorted by key. 
 
 Periodically, the segments are merged (also called "compaction"); this ensures a reduction 
 in memory footprint by removing old entries and thus decreasing the number of segments. 
