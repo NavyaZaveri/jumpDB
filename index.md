@@ -1,11 +1,11 @@
-### Welcome to sst_engine's documentation! 
+### Welcome jumpDB's documentation! 
 
 
-*sst_engine* is a simple key-value store, powered by SSTables. 
+*jumpDB* is a simple key-value store, powered by SSTables. 
 
 #### Usage 
 ```
-from sst_engine import DB
+from jumpDB import DB
 
 db = DB() 
 db["foo"] = "bar"
@@ -40,7 +40,7 @@ assert db["foo"] == "bar"
 
 #### Design & Implementation 
 
-Th design philoshopy is essentially a simplified version of levelDB. 
+Th design philosophy is essentially a simplified version of levelDB. 
 
 Every write is initially inserted into an in-memory data structure (typically called "memtable)
  -- in this case,  red-black tree. 
@@ -61,17 +61,11 @@ Periodically, the segments are merged (also called "compaction"); this ensures a
 in memory footprint by removing old entries and thus decreasing the number of segments. 
 
 An addition optimisation includes the use of bloom-filters to check if a key is not present in 
-the DB. The naive alternative is to look into tree first, then every single segment; this has a much worse 
-time complexity. 
-
-
-
-
-
+the DB. This saves from performing heavy disk reads for keys that haven't been inserted into the db. 
 
 
 
 #### Contribute
-Visit <url>  to submit issues and open PRs
+Visit https://github.com/NavyaZaveri/jumpDB/ to submit issues and open PRs.
 
 
