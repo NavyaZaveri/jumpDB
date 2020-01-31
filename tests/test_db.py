@@ -35,6 +35,8 @@ def test_db_search_with_multiple_segments():
     kv_pairs = [("k" + str(i), "v" + str(i)) for i in range(5)]
     for (k, v) in kv_pairs:
         db[k] = v
+
+    # we'll have 2 segments, each containing 2 entries); the memtable will contain the last entry
     assert db.segment_count() == 2
     for (k, v) in kv_pairs:
         assert db[k] == v
@@ -128,8 +130,8 @@ def test_worst_case_get():
     """
     In this specific example, we try to find the value corresponding to "k1_1"
 
-    With the given db parameters, the sparse index will  one entry: "k1" -> segment_2
-    Thus, we now have to look into all all segments before segment_2 to find correct entry
+    With the given db parameters, the sparse index will  have only one entry: "k1" -> segment_2
+    Thus, we now have to look into all all segments to find correct entry
 
     :return:
     """

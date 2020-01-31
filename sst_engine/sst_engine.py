@@ -1,3 +1,31 @@
+"""
+BSD 2-Clause License
+
+Copyright (c) 2020, Navya
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice, this
+   list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+"""
+
 import os
 import json
 import re
@@ -119,6 +147,8 @@ class Segment:
             entry = self.read_entry()
             if entry.key == query:
                 return entry
+            if entry.key > query:
+                break
         return None
 
     def __len__(self):
@@ -250,6 +280,10 @@ class DB:
             self._scan_path_for_segments(path)
 
     def _update_sparse_memory_index(self):
+        """
+        Stores the key offset for every 1 in `x` entries into the SMI. This method should
+        only be called after segments have been merged and stored internally.
+        """
         count = 0
         for segment in self._immutable_segments:
             with segment.open("r"):
@@ -277,6 +311,12 @@ class DB:
     def segment_count(self):
         return len(self._immutable_segments)
 
+    def range_query(self, mn, mx, fold):
+        def item():
+            pass
+
+        pass
+
     def get(self, item):
         """
 
@@ -298,7 +338,9 @@ class DB:
 
         segments_seen = set()
         for closest_key in self._sparse_memory_index.irange(maximum=item, reverse=True):
-            for keydir_entry in self._sparse_memory_index[closest_key]:
+
+            # iterate in reverse order because we want the most recent keydir entries
+            for keydir_entry in self._sparse_memory_index[closest_key][::-1]:
                 segment, offset = keydir_entry.segment, keydir_entry.offset
                 if segment in segments_seen:
                     continue
@@ -351,8 +393,8 @@ class DB:
             self._mem_table.clear()
             self._entries_deleted = 0
             self._mem_table[key] = value
-        else:
-            self._mem_table[key] = value
+
+        self._mem_table[key] = value
 
     def __delitem__(self, key):
         if key in self:
