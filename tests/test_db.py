@@ -152,3 +152,16 @@ def test_worst_case_get():
     finally:
         os.remove(segment_1.path)
         os.remove(segment_2.path)
+
+
+def test_sanity():
+    db = DB(segment_size=2, merge_threshold=5, max_inmemory_size=10)
+    kv_pairs = [("k" + str(i), "v" + str(i)) for i in range(50)]
+    for (k, v) in kv_pairs:
+        db[k] = v
+    for (k, v) in kv_pairs[25:]:
+        del db[k]
+    for (k, v) in kv_pairs[:25]:
+        assert db[k] == v
+    for (k, v) in kv_pairs[25:]:
+        assert k not in db

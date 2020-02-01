@@ -43,7 +43,9 @@ TOMBSTONE = str(uuid.uuid5(uuid.NAMESPACE_OID, 'TOMBSTONE')).encode('ascii')
 SEGMENT_DIR = "sst_data"
 
 
-def make_new_segment(persist=False, base_path=SEGMENT_DIR):
+def make_new_segment(persist=False, base_path=None):
+    if base_path is None:
+        base_path = SEGMENT_DIR
     if persist:
         return make_persistent_segment(base_path)
     return make_temp_segment()
@@ -73,19 +75,25 @@ def chain_segments(*segments):
         open_segments = [stack.enter_context(segment.open("r")) for segment in segments]
         heap = []
         previous_entry = None
+
+        # initialize the heap
+
         for segment in open_segments:
             if not segment.reached_eof():
                 entry = segment.read_entry()
                 key = entry.key
                 heapq.heappush(heap, (key, -segment.timestamp, entry, segment))
+
         while heap:
             key, ts, entry, segment = heapq.heappop(heap)
+
             if previous_entry is not None and entry.key == previous_entry.key:
                 if not segment.reached_eof():
                     next_entry = segment.read_entry()
                     next_key = next_entry.key
                     heapq.heappush(heap, (next_key, -segment.timestamp, next_entry, segment))
                 continue
+
             yield entry
             previous_entry = entry
             if not segment.reached_eof():
