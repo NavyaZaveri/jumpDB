@@ -43,7 +43,7 @@ def test_db_search_with_multiple_segments():
 
 
 def test_db_search_with_single_merged_segment():
-    db = DB(max_inmemory_size=2, segment_size=2, sparse_offset=5, persist_segments=False)
+    db = DB(max_inmemory_size=2, segment_size=2, sparse_offset=5, merge_threshold=2, persist_segments=False)
     kv_pairs = [("k1", "v1"), ("k2", "v2"), ("k1", "v1_1"), ("k2", "v2_2"), ("k3", "v3")]
     for (k, v) in kv_pairs:
         db[k] = v
@@ -154,7 +154,7 @@ def test_worst_case_get():
         os.remove(segment_2.path)
 
 
-def test_sanity():
+def test_db_for_large_dataset():
     db = DB(segment_size=2, merge_threshold=5, max_inmemory_size=10, persist_segments=False)
     kv_pairs = [("k" + str(i), "v" + str(i)) for i in range(50)]
     for (k, v) in kv_pairs:

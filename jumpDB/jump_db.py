@@ -85,7 +85,7 @@ def chain_segments(*segments):
                 heapq.heappush(heap, (key, -segment.timestamp, entry, segment))
 
         while heap:
-            key, ts, entry, segment = heapq.heappop(heap)
+            key, negative_ts, entry, segment = heapq.heappop(heap)
 
             if previous_entry is not None and entry.key == previous_entry.key:
                 if not segment.reached_eof():
@@ -258,10 +258,10 @@ class SegmentEntry:
 
 
 class DB:
-    def __init__(self, max_inmemory_size=1000, sparse_offset=100, segment_size=500,
+    def __init__(self, max_inmemory_size=1000, sparse_offset=300, segment_size=50,
                  persist_segments=True,
                  path=None,
-                 merge_threshold=2):
+                 merge_threshold=3):
         """
 
         :param max_inmemory_size: maximum number of entries to hold in memory.
@@ -374,7 +374,8 @@ class DB:
             raise Exception(f"values can only be strings; {value} is not.")
 
         self._bloom_filter.add(key)
-        if self._mem_table.capacity_reached():
+
+        if self._mem_table.capacity_reached() and key not in self:
             segment = self._write_to_segment()
             self._immutable_segments.append(segment)
             if len(self._immutable_segments) >= self._merge_threshold:
@@ -443,9 +444,6 @@ class DB:
                     count += 1
 
         return segment
-
-    def load_from_data(self):
-        pass
 
 
 class MemTable:
