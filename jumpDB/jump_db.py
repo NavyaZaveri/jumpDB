@@ -311,8 +311,8 @@ class DB:
     def segment_count(self):
         return len(self._immutable_segments)
 
-    def range_query(self, mn, mx, fold):
-        raise NotImplemented
+    def _search_key_location(self):
+        pass
 
     def get(self, item):
         if item in self._mem_table:
@@ -411,7 +411,7 @@ class DB:
                     if count == self._segment_size:
                         merge_into(make_new_segment(self.persist, self._base_path), chain_gen)
                         break
-            if len(new_segment) >= 1:  # just in case the generator doesn't yield anything
+            if len(new_segment) >= 1:
                 merged_segments.append(new_segment)
 
         merge_into(make_new_segment(self.persist, self._base_path), chain_segments(*segments))
