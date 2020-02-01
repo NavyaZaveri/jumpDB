@@ -155,7 +155,7 @@ def test_worst_case_get():
 
 
 def test_sanity():
-    db = DB(segment_size=2, merge_threshold=5, max_inmemory_size=10)
+    db = DB(segment_size=2, merge_threshold=5, max_inmemory_size=10, persist_segments=False)
     kv_pairs = [("k" + str(i), "v" + str(i)) for i in range(50)]
     for (k, v) in kv_pairs:
         db[k] = v
