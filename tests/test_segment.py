@@ -55,7 +55,7 @@ def test_simple_segment_chaining(segment):
         for entry in segment_2_entries:
             segment_2.add_entry(entry)
 
-    db = DB(persist_segments=False)
+    db = DB(persist_segments=False, segment_size=3)
     merged_segments = db.merge(segment_1, segment_2)
     assert len(merged_segments) == 1
     segment_3 = merged_segments.pop()
@@ -75,7 +75,7 @@ def test_segment_chaining_with_duplicate_keys():
         for entry in segment_2_entries:
             segment_2.add_entry(entry)
 
-    db = DB(persist_segments=False)
+    db = DB(persist_segments=False, segment_size=3)
     merged_segments = db.merge(segment_1, segment_2)
     assert len(merged_segments) == 1
     segment_3 = merged_segments.pop()

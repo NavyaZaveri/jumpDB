@@ -270,7 +270,8 @@ class DB:
         :param segment_size: maximum number of entries in a given segment.
         :param persist_segments: if set to false, cleans up segment files in the end. Otherwise, retains the files in disk
         :param merge_threshold: number of segment to keep in intact before merging
-        :param path: absolute path of directory to scan into for pre-existing segments
+        :param path: absolute path to scan into for pre-existing segments / store current segments. If none is provided, the
+        default is sst_dir
         """
         self._mem_table = MemTable(max_inmemory_size)
         self.max_inmemory_size = max_inmemory_size
@@ -318,9 +319,6 @@ class DB:
 
     def segment_count(self):
         return len(self._immutable_segments)
-
-    def _search_key_location(self):
-        pass
 
     def get(self, item):
         if item in self._mem_table:
