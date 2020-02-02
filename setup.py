@@ -8,7 +8,7 @@ with open('requirements.txt') as f:
 
 setuptools.setup(
     name="jumpDB",  # Replace with your own username
-    version="0.0.1",
+    version="0.0.3",
     author="Navya Zaveri",
     author_email="author@example.com",
     description="A simple kv store ",
@@ -19,7 +19,6 @@ setuptools.setup(
     install_requires=required,
     classifiers=[
         "Programming Language :: Python :: 3",
-        "License :: OSI Approved :: BSD 2-Clause",
         "Operating System :: OS Independent",
     ],
     python_requires='>=3.6',
