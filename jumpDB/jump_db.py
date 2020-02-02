@@ -270,8 +270,8 @@ class DB:
         :param segment_size: maximum number of entries in a given segment.
         :param persist_segments: if set to false, cleans up segment files in the end. Otherwise, retains the files in disk
         :param merge_threshold: number of segment to keep in intact before merging
-        :param path: absolute path to scan into for pre-existing segments / store current segments. If none is provided, the
-        default is sst_dir
+        :param path: absolute path to scan into for pre-existing segments, and to  store current segments.
+        If none provided,  the default is sst_dir
         """
         self._mem_table = MemTable(max_inmemory_size)
         self.max_inmemory_size = max_inmemory_size
@@ -305,6 +305,12 @@ class DB:
                         self._sparse_memory_index[key].append(key_dir_entry)
                     count += 1
 
+    def _update_bloom_filter(self):
+        for segment in self._immutable_segments:
+            with segment.open("r"):
+                for entry in segment.entries():
+                    self._bloom_filter.add(entry.key)
+
     def _scan_path_for_segments(self, path):
         """
         Scans the base path for previously existing segments.
@@ -316,11 +322,14 @@ class DB:
                 storage.append(entry.path)
         self._immutable_segments = [Segment(path) for path in sorted(storage)]
         self._update_sparse_memory_index()
+        self._update_bloom_filter()
 
     def segment_count(self):
         return len(self._immutable_segments)
 
     def get(self, item):
+        if item not in self._bloom_filter:
+            return None
         if item in self._mem_table:
             value = self._mem_table[item]
             if value == TOMBSTONE:
@@ -354,20 +363,6 @@ class DB:
         return None
 
     def insert(self, key, value):
-        self[key] = value
-
-    def __getitem__(self, item):
-        value = self.get(item)
-        if value is None:
-            raise RuntimeError(f"no value found for {item}")
-        return value
-
-    def _clear_segment_list(self):
-        while self._immutable_segments:
-            segment = self._immutable_segments.pop()
-            delete_segment(segment)
-
-    def __setitem__(self, key, value):
         if not isinstance(key, str):
             raise Exception(f"keys can only be strings; {key} is not.")
         if not isinstance(value, str):
@@ -390,6 +385,20 @@ class DB:
             self._mem_table[key] = value
 
         self._mem_table[key] = value
+
+    def __getitem__(self, item):
+        value = self.get(item)
+        if value is None:
+            raise Exception(f"no value found for {item}")
+        return value
+
+    def _clear_segment_list(self):
+        while self._immutable_segments:
+            segment = self._immutable_segments.pop()
+            delete_segment(segment)
+
+    def __setitem__(self, key, value):
+        self.insert(key, value)
 
     def __delitem__(self, key):
         if key in self:
