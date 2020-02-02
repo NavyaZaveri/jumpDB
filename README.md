@@ -8,6 +8,10 @@ Here's a [tutorial](https://navyazaveri.github.io/algorithms/2020/01/12/write-a-
 
 ### Install  
 
+```
+pip3 install jumpDB
+```
+
 
 
 ### Usage 
