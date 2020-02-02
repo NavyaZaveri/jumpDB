@@ -52,10 +52,10 @@ file offset of every in 1 in x entries.
 
 When a read comes in, we first look into the memtable for the corresponding k-v pair; if it doesn't exist, 
 we look at the *closest* entry (by key) in the sparse table. We *jump* to the file offset of that entry and then linearly scan forwards 
- until we find the desire key-value pair. This is only possible because the SST is sorted by key (and it's also why I named the db "JumpDB"). 
+ until we find the desired key-value pair. This is only possible because the SST is sorted by key (and it's also why I named the db "JumpDB"). 
 
 Periodically, the segments are merged (also called "compaction"); this ensures a reduction 
-in memory footprint by removing old entries and thus decreasing the number of segments. 
+in memory footprint as the resulting merged segments(s) would only hold the most recent entries. 
 
 An addition optimisation includes the use of bloom-filters to check if a key is not present in 
 the DB. This saves from performing heavy disk reads for keys that haven't been inserted into the db. 
