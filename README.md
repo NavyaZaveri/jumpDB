@@ -2,7 +2,7 @@
 
 JumpDB is a simple key-value store that exploits Sorted String Tables.
 
-I've written a [tutorial](https://navyazaveri.github.io/algorithms/2020/01/12/write-a-kv-store-from-scratch.html)  which goes a little more in-depth into how it works.
+Here's a [tutorial](https://navyazaveri.github.io/algorithms/2020/01/12/write-a-kv-store-from-scratch.html)  which goes a little more in-depth into how it works.
 
 
 
@@ -38,7 +38,7 @@ assert "k2" not in db
 
 ### Design & Implementation 
 
-Th design is essentially a simplified version of levelDB. 
+Th design is essentially a simplified version of [levelDB](https://en.wikipedia.org/wiki/LevelDB). 
 
 Every write is initially inserted into an in-memory data structure (typically called "memtable")
  -- in this case,  a red-black tree. 
