@@ -14,8 +14,6 @@ assert db["foo"] == "bar"
 ```
 
 
-#### Features 
-
 
 
 #### Installation 
@@ -26,15 +24,15 @@ assert db["foo"] == "bar"
 
 #### API
 
-* `get`(key) =>
+* `get`(key) => Finds the corresponding value to the given key 
 
-* `set(key)` =>
+* `set(key, value)` => Insert the entry into the db 
 
 * `range()` =>
 
-* `delete(key)` =>
+* `delete(key)` => Deletes the key from the db 
 
-* `contains(key)` =>
+* `contains(key)` => Checks if the given key is present in the db 
 
 
 
