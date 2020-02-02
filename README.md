@@ -44,7 +44,7 @@ Every write is initially inserted into an in-memory data structure (typically ca
  -- in this case,  a red-black tree. 
  
 When the memtable's size exceeds a certain threshold, all entries are written out into a segment file. 
-Exploiting the properties of a red-black BST, we can ensure all entries will be efficiently written in sorted order:
+Exploiting the properties of a red-black BST, we can ensure all entries will be efficiently written in sorted order.
 the resulting file is immutable and called a sorted-string table (SST).
 
 Whilst performing the above write, we also maintain a sparse index table, keeping track of the 
