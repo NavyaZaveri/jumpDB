@@ -18,10 +18,9 @@ from jumpDB import DB
 db = DB(max_inmemory_size=2, persist_segments=False)
 db["k1"] = "v1"
 db["k2"] = "v2"
-db["k3"] = "v3"
+del db["k2"]
 assert db["k1"] == "v1"
-assert db["k2"] == "v2"
-assert db["k3"] == "v3"
+assert "k2" not in db
 ```
 
 
@@ -60,9 +59,6 @@ in memory footprint by removing old entries and thus decreasing the number of se
 
 An addition optimisation includes the use of bloom-filters to check if a key is not present in 
 the DB. This saves from performing heavy disk reads for keys that haven't been inserted into the db. 
-
-
-
 
 
 ### License 
