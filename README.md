@@ -55,7 +55,7 @@ we look at the *closest* entry (by key) in the sparse table. We *jump* to the fi
  until we find the desired key-value pair. This is only possible because the SST is sorted by key (and it's also why I named the db "JumpDB"). 
 
 Periodically, the segments are merged (also called "compaction"); this ensures a reduction 
-in memory footprint as the resulting merged segments(s) would only hold the most r  ecent entries. 
+in memory footprint as the resulting merged segments(s) would only hold the most recent entries. 
 
 An addition optimisation includes the use of bloom-filters to check if a key is not present in 
 the DB. This saves us from performing heavy disk reads for keys that haven't been inserted into the db. 
