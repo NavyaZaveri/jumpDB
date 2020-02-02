@@ -27,7 +27,7 @@ assert db["k3"] == "v3"
 
 ### API
 
-* `get`(key) => Finds the corresponding value to the given key 
+* `get(key)` => Finds the corresponding value to the given key 
 
 * `set(key, value)` => Insert the entry into the db 
 
