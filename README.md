@@ -62,5 +62,10 @@ An addition optimisation includes the use of bloom-filters to check if a key is 
 the DB. This saves us from performing heavy disk reads for keys that haven't been inserted into the db. 
 
 
+
+### Tests 
+Run `pytest -v`
+
+
 ### License 
 BSD 2-Clause License
