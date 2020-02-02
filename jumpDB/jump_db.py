@@ -77,7 +77,6 @@ def chain_segments(*segments):
         previous_entry = None
 
         # initialize the heap
-
         for segment in open_segments:
             if not segment.reached_eof():
                 entry = segment.read_entry()
@@ -87,6 +86,7 @@ def chain_segments(*segments):
         while heap:
             key, negative_ts, entry, segment = heapq.heappop(heap)
 
+            # we might encounter old, duplicate keys: ignore them
             if previous_entry is not None and entry.key == previous_entry.key:
                 if not segment.reached_eof():
                     next_entry = segment.read_entry()
@@ -279,7 +279,6 @@ class DB:
         self._sparse_memory_index = SortedDict()
         self.sparse_offset = sparse_offset
         self._segment_size = segment_size
-        self._entries_deleted = 0
         self._bloom_filter = ScalableBloomFilter(mode=2)
         self.persist = persist_segments
         self._merge_threshold = merge_threshold
@@ -381,7 +380,6 @@ class DB:
                 self._update_sparse_memory_index()
 
             self._mem_table.clear()
-            self._entries_deleted = 0
             self._mem_table[key] = value
 
         self._mem_table[key] = value
@@ -403,7 +401,6 @@ class DB:
     def __delitem__(self, key):
         if key in self:
             self._mem_table[key] = TOMBSTONE
-            self._entries_deleted += 1
         else:
             raise Exception(f"{key} does not exist in the db; thus, cannot delete")
 
@@ -411,9 +408,6 @@ class DB:
         if item not in self._bloom_filter:
             return False
         return self.get(item) is not None
-
-    def inmemory_size(self):
-        return len(self._mem_table) - self._entries_deleted
 
     def merge(self, *segments):
         merged_segments = []
