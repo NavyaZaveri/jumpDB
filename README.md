@@ -38,7 +38,7 @@ assert "k2" not in db
 
 ### Design & Implementation 
 
-Th design philosophy is essentially a simplified version of levelDB. 
+Th design is essentially a simplified version of levelDB. 
 
 Every write is initially inserted into an in-memory data structure (typically called "memtable")
  -- in this case,  a red-black tree. 

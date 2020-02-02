@@ -279,7 +279,7 @@ class DB:
         self._sparse_memory_index = SortedDict()
         self.sparse_offset = sparse_offset
         self._segment_size = segment_size
-        self._bloom_filter = ScalableBloomFilter(mode=2)
+        self._bloom_filter = ScalableBloomFilter(mode=ScalableBloomFilter.SMALL_SET_GROWTH)
         self.persist = persist_segments
         self._merge_threshold = merge_threshold
         self._base_path = None
