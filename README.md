@@ -19,7 +19,7 @@ pip3 install jumpDB
 ```
 from jumpDB import DB
 
-db = DB(max_inmemory_size=2, persist_segments=False)
+db = DB()
 db["k1"] = "v1"
 db["k2"] = "v2"
 del db["k2"]
