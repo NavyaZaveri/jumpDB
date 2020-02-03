@@ -367,9 +367,7 @@ class DB:
         if not isinstance(value, str):
             raise Exception(f"values can only be strings; {value} is not.")
 
-        self._bloom_filter.add(key)
-
-        if self._mem_table.capacity_reached() and key not in self:
+        if self._mem_table.capacity_reached() and key not in self._bloom_filter:
             segment = self._write_to_segment()
             self._immutable_segments.append(segment)
             if len(self._immutable_segments) >= self._merge_threshold:
@@ -382,6 +380,7 @@ class DB:
             self._mem_table.clear()
             self._mem_table[key] = value
 
+        self._bloom_filter.add(key)
         self._mem_table[key] = value
 
     def __getitem__(self, item):
