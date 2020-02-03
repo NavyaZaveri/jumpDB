@@ -42,7 +42,7 @@ assert "k2" not in db
 
 ### Design & Implementation 
 
-Th design is essentially a simplified version of [levelDB](https://en.wikipedia.org/wiki/LevelDB). 
+The design is essentially a simplified version of [levelDB](https://en.wikipedia.org/wiki/LevelDB). 
 
 Every write is initially inserted into an in-memory data structure (typically called "memtable")
  -- in this case,  a red-black tree. 
