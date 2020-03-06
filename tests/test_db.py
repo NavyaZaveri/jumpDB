@@ -7,6 +7,7 @@ import pytest
 def test_simple_db_search():
     db = DB(max_inmemory_size=10, persist_segments=False)
     db["foo"] = "bar"
+
     assert db["foo"] == "bar"
 
 
