@@ -1,6 +1,6 @@
 ## JumpDB
 
-JumpDB is a simple key-value store that exploits Sorted String Tables.
+JumpDB is a simple, embedded key-value store that exploits Sorted String Tables.
 
 Here's a [tutorial](https://navyazaveri.github.io/algorithms/2020/01/12/write-a-kv-store-from-scratch.html)  which goes a little more in-depth into how it works.
 
@@ -59,7 +59,7 @@ we look at the *closest* entry (by key) in the sparse table. We *jump* to the fi
  until we find the desired key-value pair. This is only possible because the SST is sorted by key.
  
  
-Periodically, the segments are merged (also called "compaction"); this ensures a reduction 
+Periodically, the SST segments are merged (also called "compaction"). This ensures a reduction 
 in memory footprint as the resulting merged segments(s) would only hold the most recent entries. 
 
 An addition optimisation includes the use of bloom-filters to check if a key is not present in 
