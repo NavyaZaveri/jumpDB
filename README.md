@@ -56,7 +56,7 @@ file offset of every in 1 in x entries.
 
 When a read comes in, we first look into the memtable for the corresponding k-v pair; if it doesn't exist, 
 we look at the *closest* entry (by key) in the sparse table. We *jump* to the file offset of that entry and then linearly scan forwards 
- until we find the desired key-value pair. This is only possible because the SST is sorted by key.
+ until we find the desired key-value pair. This works only because the SST is sorted by key.
  
  
 Periodically, the SST segments are merged (also called "compaction"). This ensures a reduction 
