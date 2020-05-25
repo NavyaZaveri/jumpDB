@@ -39,7 +39,7 @@ import attr
 from sortedcontainers import SortedDict
 from contextlib import ExitStack
 
-TOMBSTONE = str(uuid.uuid5(uuid.NAMESPACE_OID, 'TOMBSTONE')).encode('ascii')
+TOMBSTONE = str(uuid.uuid5(uuid.NAMESPACE_OID, 'TOMBSTONE'))
 SEGMENT_DIR = "sst_data"
 
 
@@ -385,7 +385,7 @@ class DB:
 
     def __getitem__(self, item):
         value = self.get(item)
-        if value is None:
+        if value is None or value == TOMBSTONE:
             raise Exception(f"no value found for {item}")
         return value
 
@@ -406,7 +406,8 @@ class DB:
     def __contains__(self, item):
         if item not in self._bloom_filter:
             return False
-        return self.get(item) is not None
+        value = self.get(item)
+        return value is not None and value != TOMBSTONE
 
     def merge(self, *segments):
         merged_segments = []
@@ -437,7 +438,7 @@ class DB:
         with segment.open("w") as segment:
             count = 0
             for (k, v) in self._mem_table:
-                if v != TOMBSTONE:  # TOMBSTONE = deleted entry; we don't put deleted entries in segments
+                if True:  # TOMBSTONE = deleted entry; we don't put deleted entries in segments
                     offset = segment.add_entry((k, v))
                     if count % self.sparse_offset == 0:
                         if k not in self._sparse_memory_index:

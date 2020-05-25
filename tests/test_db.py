@@ -72,6 +72,17 @@ def test_db_contains_key():
     assert "k2" not in db
 
 
+def test_key_eviction_after_writing_to_sst():
+    db = DB(max_inmemory_size=2, segment_size=2, persist_segments=False)
+    db["k1"] = "v1"
+    db["k2"] = "v2"
+    db["k3"] = "k3"
+    del db["k1"]
+    db["k4"] = "v4"
+    db["k5"] = "v5"
+    assert "k1" not in db
+
+
 def test_db_deletion_on_nonexistent_key():
     db = DB(max_inmemory_size=2, segment_size=2, persist_segments=False)
     with pytest.raises(Exception):
