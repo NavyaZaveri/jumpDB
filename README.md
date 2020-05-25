@@ -44,6 +44,9 @@ assert "k2" not in db
 
 The design is essentially a simplified version of [levelDB](https://en.wikipedia.org/wiki/LevelDB). 
 
+
+#### Insert
+
 Every write is initially inserted into an in-memory data structure (typically called "memtable")
  -- in this case,  a red-black tree. 
  
@@ -54,9 +57,12 @@ The resulting file is immutable and called a sorted-string table (SST).
 Whilst performing the above write, we also maintain a sparse index table, keeping track of the 
 file offset of every in 1 in x entries. 
 
+
+#### Read 
+
 When a read comes in, we first look into the memtable for the corresponding k-v pair; if it doesn't exist, 
 we look at the *closest* entry (by key) in the sparse table. We *jump* to the file offset of that entry and then linearly scan forwards 
- until we find the desired key-value pair. This is only possible because the SST is sorted by key.
+ until we find the desired key-value pair. This works only because the SST is sorted by key.
  
  
 Periodically, the SST segments are merged (also called "compaction"). This ensures a reduction 
