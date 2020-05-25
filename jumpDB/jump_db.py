@@ -438,13 +438,12 @@ class DB:
         with segment.open("w") as segment:
             count = 0
             for (k, v) in self._mem_table:
-                if True:  # TOMBSTONE = deleted entry; we don't put deleted entries in segments
-                    offset = segment.add_entry((k, v))
-                    if count % self.sparse_offset == 0:
-                        if k not in self._sparse_memory_index:
-                            self._sparse_memory_index[k] = []
-                        self._sparse_memory_index[k].append(KeyDirEntry(offset=offset, segment=segment))
-                    count += 1
+                offset = segment.add_entry((k, v))
+                if count % self.sparse_offset == 0:
+                    if k not in self._sparse_memory_index:
+                        self._sparse_memory_index[k] = []
+                    self._sparse_memory_index[k].append(KeyDirEntry(offset=offset, segment=segment))
+                count += 1
 
         return segment
 
