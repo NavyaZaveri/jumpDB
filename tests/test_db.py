@@ -7,7 +7,6 @@ import pytest
 def test_simple_db_search():
     db = DB(max_inmemory_size=10, persist_segments=False)
     db["foo"] = "bar"
-
     assert db["foo"] == "bar"
 
 
@@ -30,7 +29,10 @@ def test_db_search_with_exceeding_capacity():
 
 
 def test_db_search_with_multiple_segments():
-    db = DB(max_inmemory_size=2, segment_size=2, sparse_offset=5, persist_segments=False)
+    db = DB(max_inmemory_size=2,
+            segment_size=2,
+            sparse_offset=5,
+            persist_segments=False)
 
     # all unique k-v pairs
     kv_pairs = [("k" + str(i), "v" + str(i)) for i in range(5)]
@@ -44,8 +46,13 @@ def test_db_search_with_multiple_segments():
 
 
 def test_db_search_with_single_merged_segment():
-    db = DB(max_inmemory_size=2, segment_size=2, sparse_offset=5, merge_threshold=2, persist_segments=False)
-    kv_pairs = [("k1", "v1"), ("k2", "v2"), ("k1", "v1_1"), ("k2", "v2_2"), ("k3", "v3")]
+    db = DB(max_inmemory_size=2,
+            segment_size=2,
+            sparse_offset=5,
+            merge_threshold=2,
+            persist_segments=False)
+    kv_pairs = [("k1", "v1"), ("k2", "v2"), ("k1", "v1_1"), ("k2", "v2_2"),
+                ("k3", "v3")]
     for (k, v) in kv_pairs:
         db[k] = v
     assert db.segment_count() == 1
@@ -95,7 +102,8 @@ def test_db_segment_loading():
     with segment.open("w"):
         segment.add_entry(segment_entry)
     try:
-        current_test_path = os.path.abspath(os.path.join(os.getcwd(), "sst_data"))
+        current_test_path = os.path.abspath(
+            os.path.join(os.getcwd(), "sst_data"))
         db = DB(path=current_test_path)
         assert db.segment_count() == 1
         assert db["k1"] == "v1"
@@ -105,8 +113,12 @@ def test_db_segment_loading():
 
 
 def test_merging_with_n_segments():
-    kv_pairs = [("k1", "v1"), ("k2", "v2"), ("k3", "v3"), ("k4", "k4"), ("k5", "v5")]
-    db = DB(max_inmemory_size=1, segment_size=1, merge_threshold=4, persist_segments=False)
+    kv_pairs = [("k1", "v1"), ("k2", "v2"), ("k3", "v3"), ("k4", "k4"),
+                ("k5", "v5")]
+    db = DB(max_inmemory_size=1,
+            segment_size=1,
+            merge_threshold=4,
+            persist_segments=False)
     for (k, v) in kv_pairs:
         db[k] = v
     assert db.segment_count() == 4
@@ -126,7 +138,8 @@ def test_internal_segment_ordering():
         segment_2.add_entry(segment_2_entry)
         segment_3.add_entry(segment_3_entry)
     try:
-        current_test_path = os.path.abspath(os.path.join(os.getcwd(), "sst_data"))
+        current_test_path = os.path.abspath(
+            os.path.join(os.getcwd(), "sst_data"))
         db = DB(path=current_test_path)
         assert db.segment_count() == 3
         assert db["k1"] == "v1"
@@ -157,7 +170,8 @@ def test_worst_case_get():
         for e in segment_2_entries:
             segment_2.add_entry(e)
     try:
-        current_test_path = os.path.abspath(os.path.join(os.getcwd(), "sst_data"))
+        current_test_path = os.path.abspath(
+            os.path.join(os.getcwd(), "sst_data"))
         db = DB(path=current_test_path, sparse_offset=2)
         assert db.segment_count() == 2
         assert db["k1_1"] == "v_1"
@@ -167,7 +181,10 @@ def test_worst_case_get():
 
 
 def test_db_for_large_dataset():
-    db = DB(segment_size=2, merge_threshold=5, max_inmemory_size=10, persist_segments=False)
+    db = DB(segment_size=2,
+            merge_threshold=5,
+            max_inmemory_size=10,
+            persist_segments=False)
     kv_pairs = [("k" + str(i), "v" + str(i)) for i in range(50)]
     for (k, v) in kv_pairs:
         db[k] = v
