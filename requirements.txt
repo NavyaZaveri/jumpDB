@@ -1,5 +1,5 @@
 attrs==19.3.0
-Babel==2.8.0
+Babel==2.9.1
 bitarray==1.2.1
 certifi==2019.11.28
 chardet==3.0.4
